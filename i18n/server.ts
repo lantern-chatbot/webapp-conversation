@@ -7,24 +7,35 @@ import type { Locale } from '.'
 import { i18n } from '.'
 
 export const getLocaleOnServer = async (): Promise<Locale> => {
-  // @ts-expect-error locales are readonly
-  const locales: string[] = i18n.locales
+  const locales: string[] = [...i18n.locales]
+  let languages: string[] = []
 
-  let languages: string[] | undefined
-  // get locale from cookie
   const localeCookie = (await cookies()).get('locale')
-  languages = localeCookie?.value ? [localeCookie.value] : []
+  if (localeCookie?.value) {
+    languages = [localeCookie.value]
+  }
 
   if (!languages.length) {
-    // Negotiator expects plain object so we need to transform headers
     const negotiatorHeaders: Record<string, string> = {}
     const headersList = await headers()
-    headersList.forEach((value, key) => (negotiatorHeaders[key] = value))
-    // Use negotiator and intl-localematcher to get best locale
+
+    headersList.forEach((value, key) => {
+      negotiatorHeaders[key] = value
+    })
+
     languages = new Negotiator({ headers: negotiatorHeaders }).languages()
   }
 
-  // match locale
-  const matchedLocale = match(languages, locales, i18n.defaultLocale) as Locale
-  return matchedLocale
+  // Studio.Designやbot/HeadlessChromeで Accept-Language が無い・'*' になる場合の対策
+  languages = languages.filter(lang => lang && lang !== '*')
+
+  if (!languages.length) {
+    languages = [i18n.defaultLocale]
+  }
+
+  try {
+    return match(languages, locales, i18n.defaultLocale) as Locale
+  } catch {
+    return i18n.defaultLocale as Locale
+  }
 }
