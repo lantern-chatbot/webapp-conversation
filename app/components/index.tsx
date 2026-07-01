@@ -306,8 +306,9 @@ const Main: FC<IMainProps> = () => {
 
     let emptyRequiredInput = false
     promptConfig.prompt_variables.forEach((item) => {
-      if (item.required && !currInputs[item.key])
+      if (item.required && !currInputs[item.key]) {
         emptyRequiredInput = true
+      }
     })
 
     if (emptyRequiredInput) {
@@ -653,7 +654,7 @@ const Main: FC<IMainProps> = () => {
   if (!APP_ID || !APP_INFO || !promptConfig) { return <Loading type='app' /> }
 
   return (
-    <div className='bg-gray-100'>
+    <div style={{ background: 'linear-gradient(180deg, #FFFFFF, #FCF9F4)' }}>
       <Header
         title={APP_INFO.title}
         isMobile={isMobile}

@@ -209,7 +209,7 @@ const Answer: FC<IAnswerProps> = ({
                   <div className="flex gap-1 mt-1 flex-wrap">
                     {suggestedQuestions.map((suggestion, index) => (
                       <div key={index} className="flex items-center gap-1">
-                        <Button className="text-sm" type="link" onClick={() => suggestionClick(suggestion)}>{suggestion}</Button>
+                        <Button className="text-sm !rounded-full !border-primary-200 hover:!bg-primary-50" type="link" onClick={() => suggestionClick(suggestion)}>{suggestion}</Button>
                       </div>
                     ))}
                   </div>

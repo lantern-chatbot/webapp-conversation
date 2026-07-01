@@ -28,7 +28,7 @@ const AppIcon: FC<AppIconProps> = ({
         background,
       }}
     >
-      🤖
+      <img src="/lantern-mark.png" alt="LANTERN" style={{ width: '60%', height: 'auto' }} />
     </span>
   )
 }

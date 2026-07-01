@@ -3,11 +3,11 @@ export const APP_ID = `${process.env.NEXT_PUBLIC_APP_ID}`
 export const API_KEY = `${process.env.NEXT_PUBLIC_APP_KEY}`
 export const API_URL = `${process.env.NEXT_PUBLIC_API_URL}`
 export const APP_INFO: AppInfo = {
-  title: 'Chat APP',
-  description: '',
-  copyright: '',
-  privacy_policy: '',
-  default_language: 'en',
+  title: 'LANTERN AI コンシェルジュ',
+  description: 'ブランディング・マーケティング・AI活用について、お気軽にご相談ください。',
+  copyright: 'LANTERN inc.',
+  privacy_policy: 'https://lantern-inc.jp/',
+  default_language: 'ja-Hans',
   disable_session_same_site: false, // set it to true if you want to embed the chatbot in an iframe
 }
 
