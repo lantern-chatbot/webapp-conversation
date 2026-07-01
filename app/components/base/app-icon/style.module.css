@@ -1,5 +1,8 @@
 .appIcon {
-  @apply flex items-center justify-center relative w-9 h-9 text-lg bg-teal-100 rounded-lg grow-0 shrink-0;
+  @apply flex items-center justify-center relative w-9 h-9 text-lg rounded-lg grow-0 shrink-0;
+  background: radial-gradient(circle at 50% 38%, #FFE7C4, #FFF6EA);
+  border: 1px solid rgba(232, 98, 10, 0.16);
+  box-shadow: 0 4px 12px rgba(232, 98, 10, 0.14);
 }
 
 .appIcon.large {

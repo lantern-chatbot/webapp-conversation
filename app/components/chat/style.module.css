@@ -1,6 +1,20 @@
 .answerIcon {
   position: relative;
-  background: url(./icons/robot.svg);
+  background: radial-gradient(circle at 50% 38%, #FFE7C4, #FFF6EA);
+  border: 1px solid rgba(232, 98, 10, 0.16);
+  border-radius: 50%;
+  box-shadow: 0 4px 12px rgba(232, 98, 10, 0.14);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.answerIcon::after {
+  content: '';
+  width: 60%;
+  height: 60%;
+  background: url(./icons/lantern-avatar.png) center/contain no-repeat;
 }
 
 .typeingIcon {
