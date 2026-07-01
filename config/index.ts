@@ -7,8 +7,8 @@ export const APP_INFO: AppInfo = {
   description: 'ブランディング・マーケティング・AI活用について、お気軽にご相談ください。',
   copyright: 'LANTERN inc.',
   privacy_policy: 'https://lantern-inc.jp/',
-  default_language: 'ja-Hans',
-  disable_session_same_site: false, // set it to true if you want to embed the chatbot in an iframe
+  default_language: 'ja',
+  disable_session_same_site: true,
 }
 
 export const isShowPrompt = false
