@@ -79,7 +79,7 @@
 
 .sendBtn:hover {
   background-image: url(./icons/send-active.svg);
-  background-color: #EBF5FF;
+  background-color: #FFF3E4;
 }
 
 .textArea:focus+div .count {

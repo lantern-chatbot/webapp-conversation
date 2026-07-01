@@ -16,9 +16,10 @@ const Question: FC<IQuestionProps> = ({ id, content, useCurrentUserAvatar, imgSr
   return (
     <div className='flex items-start justify-end' key={id}>
       <div>
-        <div className={`${s.question} relative text-sm text-gray-900`}>
+        <div className={`${s.question} relative text-sm text-white`}>
           <div
-            className={'mr-2 py-3 px-4 bg-blue-500 rounded-tl-2xl rounded-b-2xl'}
+            className={'mr-2 py-3 px-4 rounded-tl-2xl rounded-b-2xl shadow-[0_6px_16px_rgba(232,98,10,0.24)]'}
+            style={{ background: 'linear-gradient(148deg, #F7911E 0%, #E8620A 100%)' }}
           >
             {imgSrcs && imgSrcs.length > 0 && (
               <ImageGallery srcs={imgSrcs} />
