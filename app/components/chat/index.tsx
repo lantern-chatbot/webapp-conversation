@@ -148,9 +148,9 @@ const Chat: FC<IChatProps> = ({
   }
 
   return (
-    <div className={cn(!feedbackDisabled && 'px-3.5', 'h-full')}>
+    <div className={cn(!feedbackDisabled && 'px-3.5', 'h-full flex flex-col')}>
       {/* Chat List */}
-      <div className="h-full space-y-[26px] pt-4">
+      <div className="grow space-y-[26px] pt-4 pb-6">
         {chatList.map((item) => {
           if (item.isAnswer) {
             const isLast = item.id === chatList[chatList.length - 1].id
@@ -176,7 +176,7 @@ const Chat: FC<IChatProps> = ({
       </div>
       {
         !isHideSendInput && (
-          <div className='fixed z-10 bottom-0 left-1/2 transform -translate-x-1/2 ml-0 max-w-full w-full px-3.5'>
+          <div className='sticky z-10 bottom-0 w-full pt-2 pb-3' style={{ background: 'linear-gradient(180deg, rgba(252,249,244,0) 0%, #FCF9F4 40%)' }}>
             <div className='p-2 max-h-[150px] rounded-2xl overflow-y-auto' style={{ background: '#FFFFFF', border: '1.5px solid #EDE3D5', boxShadow: '0 6px 24px rgba(180, 120, 40, 0.10)' }}>
               {
                 visionConfig?.enabled && (
@@ -223,7 +223,7 @@ const Chat: FC<IChatProps> = ({
                 onKeyDown={handleKeyDown}
                 autoSize
               />
-              <div className="absolute bottom-3 right-3 flex items-center h-8">
+              <div className="absolute bottom-5 right-3 flex items-center h-8">
                 <Tooltip
                   selector='send-tip'
                   htmlContent={
