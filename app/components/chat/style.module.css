@@ -50,8 +50,7 @@
 }
 
 .answer::before {
-  left: 0;
-  background: url(./icons/answer.svg) no-repeat;
+  display: none;
 }
 
 .answer {
@@ -67,8 +66,7 @@
 }
 
 .question::before {
-  right: 0;
-  background: url(./icons/question.svg) no-repeat;
+  display: none;
 }
 
 .question {
@@ -109,23 +107,29 @@
 } */
 
 .count {
-  /* display: none; */
-  padding: 0 2px;
+  display: none !important;
 }
 
 .sendBtn {
-  background: url(./icons/send.svg) center center no-repeat;
+  background-image: url(./icons/send-white.svg), linear-gradient(145deg, #F7911E, #E8620A);
+  background-position: center, center;
+  background-repeat: no-repeat, no-repeat;
+  background-size: 16px, cover;
+  border-radius: 50% !important;
+  box-shadow: 0 4px 12px rgba(232, 98, 10, 0.35);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .sendBtn:hover {
-  background-image: url(./icons/send-active.svg);
-  background-color: #FFF3E4;
+  background-image: url(./icons/send-white.svg), linear-gradient(145deg, #FBB040, #E8620A);
+  transform: scale(1.08);
+  box-shadow: 0 6px 16px rgba(232, 98, 10, 0.45);
 }
 
 .textArea:focus+div .count {
-  display: block;
+  display: none;
 }
 
 .textArea:focus+div .sendBtn {
-  background-image: url(./icons/send-active.svg);
+  background-image: url(./icons/send-white.svg), linear-gradient(145deg, #F7911E, #E8620A);
 }

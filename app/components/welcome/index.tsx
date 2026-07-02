@@ -80,11 +80,8 @@ const Welcome: FC<IWelcomeProps> = ({
   }
 
   const renderHeader = () => {
-    return (
-      <div className='absolute top-0 left-0 right-0 flex items-center justify-between mobile:h-12 tablet:h-16 px-8' style={{ background: 'linear-gradient(135deg, #FFF6E9 0%, #FFFFFF 62%)', borderBottom: '1px solid #F1E7DA' }}>
-        <div className='text-gray-900'>{conversationName}</div>
-      </div>
-    )
+    // 埋め込み用：会話名ヘッダー非表示
+    return null
   }
 
   const renderInputs = () => {
@@ -344,6 +341,9 @@ const Welcome: FC<IWelcomeProps> = ({
   }
 
   const renderHasSetInputs = () => {
+    // 埋め込み用：変数パネル（「挨拶メッセージ」など）非表示
+    return null
+
     if ((!isPublicVersion && !canEditInputs) || !hasVar) { return null }
 
     return (
@@ -355,7 +355,7 @@ const Welcome: FC<IWelcomeProps> = ({
   }
 
   return (
-    <div className='relative mobile:min-h-[48px] tablet:min-h-[64px]'>
+    <div className={hasSetInputs ? 'relative' : 'relative mobile:min-h-[48px] tablet:min-h-[64px]'}>
       {hasSetInputs && renderHeader()}
       <div className='mx-auto pc:w-[794px] max-w-full mobile:w-full px-3.5'>
         {/*  Has't set inputs  */}

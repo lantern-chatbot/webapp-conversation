@@ -150,7 +150,7 @@ const Chat: FC<IChatProps> = ({
   return (
     <div className={cn(!feedbackDisabled && 'px-3.5', 'h-full')}>
       {/* Chat List */}
-      <div className="h-full space-y-[30px]">
+      <div className="h-full space-y-[26px] pt-4">
         {chatList.map((item) => {
           if (item.isAnswer) {
             const isLast = item.id === chatList[chatList.length - 1].id
@@ -177,7 +177,7 @@ const Chat: FC<IChatProps> = ({
       {
         !isHideSendInput && (
           <div className='fixed z-10 bottom-0 left-1/2 transform -translate-x-1/2 ml-0 max-w-full w-full px-3.5'>
-            <div className='p-[5.5px] max-h-[150px] rounded-xl overflow-y-auto' style={{ background: '#FBF6EF', border: '1.5px solid #EDE3D5' }}>
+            <div className='p-2 max-h-[150px] rounded-2xl overflow-y-auto' style={{ background: '#FFFFFF', border: '1.5px solid #EDE3D5', boxShadow: '0 6px 24px rgba(180, 120, 40, 0.10)' }}>
               {
                 visionConfig?.enabled && (
                   <>
@@ -214,7 +214,7 @@ const Chat: FC<IChatProps> = ({
               }
               <Textarea
                 className={`
-                  block w-full px-2 pr-[118px] py-[7px] leading-5 max-h-none text-base text-gray-700 outline-none appearance-none resize-none
+                  block w-full px-2 pr-[56px] py-[7px] leading-5 max-h-none text-base text-gray-700 outline-none appearance-none resize-none
                   ${visionConfig?.enabled && 'pl-12'}
                 `}
                 value={query}
@@ -223,8 +223,7 @@ const Chat: FC<IChatProps> = ({
                 onKeyDown={handleKeyDown}
                 autoSize
               />
-              <div className="absolute bottom-2 right-6 flex items-center h-8">
-                <div className={`${s.count} mr-3 h-5 leading-5 text-sm bg-gray-50 text-gray-500 px-2 rounded`}>{query.trim().length}</div>
+              <div className="absolute bottom-3 right-3 flex items-center h-8">
                 <Tooltip
                   selector='send-tip'
                   htmlContent={
