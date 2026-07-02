@@ -668,14 +668,15 @@ const Main: FC<IMainProps> = () => {
   if (!APP_ID || !APP_INFO || !promptConfig) { return <Loading type='app' /> }
 
   return (
-    <div style={{ background: 'linear-gradient(180deg, #FFFBF5, #FBF4EA)' }}>
+    <div style={{ background: '#FAF7F2' }}>
       <Header
         title={APP_INFO.title}
         isMobile={false}
         onShowSideBar={showSidebar}
         onCreateNewChat={() => handleConversationIdChange('-1')}
+        onQuickAction={(message) => handleSend(message, [])}
       />
-      <div className="flex rounded-t-2xl bg-white overflow-hidden">
+      <div className="flex bg-white overflow-hidden">
         {/* sidebar */}
         {!isMobile && renderSidebar()}
         {isMobile && isShowSidebar && (
@@ -686,7 +687,7 @@ const Main: FC<IMainProps> = () => {
           </div>
         )}
         {/* main */}
-        <div className='flex-grow flex flex-col h-[calc(100vh_-_3.5rem)] overflow-y-auto' style={{ background: 'linear-gradient(180deg, #FFFCF7 0%, #FBF4EA 100%)' }}>
+        <div className='flex-grow flex flex-col h-[calc(100vh_-_3.5rem)] overflow-y-auto' style={{ background: 'linear-gradient(180deg, #FFFCF8 0%, #FAF3EA 100%)' }}>
           <ConfigSence
             conversationName={conversationName}
             hasSetInputs={hasSetInputs}

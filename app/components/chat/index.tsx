@@ -176,54 +176,56 @@ const Chat: FC<IChatProps> = ({
       </div>
       {
         !isHideSendInput && (
-          <div className='sticky z-10 bottom-0 w-full pt-2 pb-3' style={{ background: 'linear-gradient(180deg, rgba(252,249,244,0) 0%, #FCF9F4 40%)' }}>
-            <div className='p-2 max-h-[150px] rounded-2xl overflow-y-auto' style={{ background: '#FFFFFF', border: '1.5px solid #EDE3D5', boxShadow: '0 6px 24px rgba(180, 120, 40, 0.10)' }}>
-              {
-                visionConfig?.enabled && (
-                  <>
-                    <div className='absolute bottom-2 left-2 flex items-center'>
-                      <ChatImageUploader
-                        settings={visionConfig}
-                        onUpload={onUpload}
-                        disabled={files.length >= visionConfig.number_limits}
+          <div className='sticky z-10 bottom-0 w-full pt-2 pb-3' style={{ background: 'linear-gradient(180deg, rgba(250,243,234,0) 0%, #FAF3EA 40%)' }}>
+            <div className='flex items-end gap-2'>
+              <div className='flex-1 p-2 max-h-[150px] rounded-2xl overflow-y-auto' style={{ background: '#FFFFFF', border: '1.5px solid #EDE3D5', boxShadow: '0 3px 14px rgba(180, 120, 40, 0.06)' }}>
+                {
+                  visionConfig?.enabled && (
+                    <>
+                      <div className='absolute bottom-2 left-2 flex items-center'>
+                        <ChatImageUploader
+                          settings={visionConfig}
+                          onUpload={onUpload}
+                          disabled={files.length >= visionConfig.number_limits}
+                        />
+                        <div className='mx-1 w-[1px] h-4 bg-black/5' />
+                      </div>
+                      <div className='pl-[52px]'>
+                        <ImageList
+                          list={files}
+                          onRemove={onRemove}
+                          onReUpload={onReUpload}
+                          onImageLinkLoadSuccess={onImageLinkLoadSuccess}
+                          onImageLinkLoadError={onImageLinkLoadError}
+                        />
+                      </div>
+                    </>
+                  )
+                }
+                {
+                  fileConfig?.enabled && (
+                    <div className={`${visionConfig?.enabled ? 'pl-[52px]' : ''} mb-1`}>
+                      <FileUploaderInAttachmentWrapper
+                        fileConfig={fileConfig}
+                        value={attachmentFiles}
+                        onChange={setAttachmentFiles}
                       />
-                      <div className='mx-1 w-[1px] h-4 bg-black/5' />
                     </div>
-                    <div className='pl-[52px]'>
-                      <ImageList
-                        list={files}
-                        onRemove={onRemove}
-                        onReUpload={onReUpload}
-                        onImageLinkLoadSuccess={onImageLinkLoadSuccess}
-                        onImageLinkLoadError={onImageLinkLoadError}
-                      />
-                    </div>
-                  </>
-                )
-              }
-              {
-                fileConfig?.enabled && (
-                  <div className={`${visionConfig?.enabled ? 'pl-[52px]' : ''} mb-1`}>
-                    <FileUploaderInAttachmentWrapper
-                      fileConfig={fileConfig}
-                      value={attachmentFiles}
-                      onChange={setAttachmentFiles}
-                    />
-                  </div>
-                )
-              }
-              <Textarea
-                className={`
-                  block w-full px-2 pr-[56px] py-[7px] leading-5 max-h-none text-base text-gray-700 outline-none appearance-none resize-none
-                  ${visionConfig?.enabled && 'pl-12'}
-                `}
-                value={query}
-                onChange={handleContentChange}
-                onKeyUp={handleKeyUp}
-                onKeyDown={handleKeyDown}
-                autoSize
-              />
-              <div className="absolute bottom-5 right-3 flex items-center h-8">
+                  )
+                }
+                <Textarea
+                  className={`
+                    block w-full px-2 pr-[36px] py-[7px] leading-5 max-h-none text-base text-gray-700 outline-none appearance-none resize-none
+                    ${visionConfig?.enabled && 'pl-12'}
+                  `}
+                  value={query}
+                  onChange={handleContentChange}
+                  onKeyUp={handleKeyUp}
+                  onKeyDown={handleKeyDown}
+                  autoSize
+                />
+              </div>
+              <div className="flex items-center h-10">
                 <Tooltip
                   selector='send-tip'
                   htmlContent={
@@ -233,9 +235,12 @@ const Chat: FC<IChatProps> = ({
                     </div>
                   }
                 >
-                  <div className={`${s.sendBtn} w-8 h-8 cursor-pointer rounded-md`} onClick={handleSend}></div>
+                  <div className={`${s.sendBtn} w-10 h-10 cursor-pointer rounded-xl`} onClick={handleSend}></div>
                 </Tooltip>
               </div>
+            </div>
+            <div className="text-center mt-2" style={{ fontSize: '10px', color: '#C4B5A0', letterSpacing: '0.03em' }}>
+              Powered by LANTERN inc.
             </div>
           </div>
         )
