@@ -177,7 +177,7 @@ const Chat: FC<IChatProps> = ({
       {
         !isHideSendInput && (
           <div className='sticky z-10 bottom-0 w-full pt-2 pb-3' style={{ background: 'linear-gradient(180deg, rgba(250,243,234,0) 0%, #FAF3EA 40%)' }}>
-            <div className='flex items-end gap-2'>
+            <div className='flex items-center gap-2'>
               <div className='flex-1 p-2 max-h-[150px] rounded-2xl overflow-y-auto' style={{ background: '#FFFFFF', border: '1.5px solid #EDE3D5', boxShadow: '0 3px 14px rgba(180, 120, 40, 0.06)' }}>
                 {
                   visionConfig?.enabled && (
@@ -215,7 +215,7 @@ const Chat: FC<IChatProps> = ({
                 }
                 <Textarea
                   className={`
-                    block w-full px-2 pr-[36px] py-[7px] leading-5 max-h-none text-base text-gray-700 outline-none appearance-none resize-none
+                    block w-full px-2 py-[7px] leading-5 max-h-none text-base text-gray-700 outline-none appearance-none resize-none
                     ${visionConfig?.enabled && 'pl-12'}
                   `}
                   value={query}

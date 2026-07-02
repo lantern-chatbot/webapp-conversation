@@ -6,7 +6,6 @@ import produce, { setAutoFreeze } from 'immer'
 import { useBoolean, useGetState } from 'ahooks'
 import useConversation from '@/hooks/use-conversation'
 import Toast from '@/app/components/base/toast'
-import Sidebar from '@/app/components/sidebar'
 import ConfigSence from '@/app/components/config-scence'
 import Header from '@/app/components/header'
 import { fetchAppParams, fetchChatList, fetchConversations, generationConversationName, sendChatMessage, updateFeedback } from '@/service'
@@ -179,7 +178,7 @@ const Main: FC<IMainProps> = () => {
       setTimeout(() => {
         const scroller = chatListDomRef.current?.parentElement
         if (scroller)
-          scroller.scrollTop = scroller.scrollHeight
+        { scroller.scrollTop = scroller.scrollHeight }
       }, 50)
     }
   }, [chatList, currConversationId])
@@ -328,7 +327,7 @@ const Main: FC<IMainProps> = () => {
     let emptyRequiredInput = false
     promptConfig.prompt_variables.forEach((item) => {
       if (item.required && !currInputs[item.key])
-        emptyRequiredInput = true
+      { emptyRequiredInput = true }
     })
 
     if (emptyRequiredInput) {
@@ -480,22 +479,29 @@ const Main: FC<IMainProps> = () => {
         })
       },
       async onCompleted(hasError?: boolean) {
+        setRespondingFalse()
         if (hasError) { return }
 
-        if (getConversationIdChangeBecauseOfNew()) {
-          const { data: allConversations }: any = await fetchConversations()
-          const newItem: any = await generationConversationName(allConversations[0].id)
+        try {
+          if (getConversationIdChangeBecauseOfNew()) {
+            const { data: allConversations }: any = await fetchConversations()
+            if (allConversations?.[0]) {
+              const newItem: any = await generationConversationName(allConversations[0].id)
 
-          const newAllConversations = produce(allConversations, (draft: any) => {
-            draft[0].name = newItem.name
-          })
-          setConversationList(newAllConversations as any)
+              const newAllConversations = produce(allConversations, (draft: any) => {
+                draft[0].name = newItem.name
+              })
+              setConversationList(newAllConversations as any)
+            }
+          }
+        }
+        catch (e) {
+          // 会話名の自動生成に失敗しても送信は続行できるようにする
         }
         setConversationIdChangeBecauseOfNew(false)
         resetNewConversationInputs()
         setChatNotStarted()
         setCurrConversationId(tempNewConversationId, APP_ID, true)
-        setRespondingFalse()
       },
       onFile(file) {
         const lastThought = responseItem.agent_thoughts?.[responseItem.agent_thoughts?.length - 1]
@@ -673,7 +679,7 @@ const Main: FC<IMainProps> = () => {
         isMobile={false}
         onShowSideBar={showSidebar}
         onCreateNewChat={() => handleConversationIdChange('-1')}
-        onQuickAction={(message) => handleSend(message, [])}
+        onQuickAction={message => handleSend(message, [])}
       />
       <div className="flex flex-1 min-h-0 bg-white overflow-hidden">
         {/* sidebar */}
@@ -687,6 +693,7 @@ const Main: FC<IMainProps> = () => {
         )}
         {/* main */}
         <div className='flex-grow flex flex-col h-full overflow-y-auto' style={{ background: 'linear-gradient(180deg, #FFFCF8 0%, #FAF3EA 100%)' }}>
+          <div className='sticky top-0 z-10 shrink-0 h-3 -mb-3 pointer-events-none' style={{ background: 'linear-gradient(180deg, #FFFCF8, rgba(255,252,248,0))' }} />
           <ConfigSence
             conversationName={conversationName}
             hasSetInputs={hasSetInputs}
