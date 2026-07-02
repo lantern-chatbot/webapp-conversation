@@ -18,7 +18,7 @@ const Question: FC<IQuestionProps> = ({ id, content, useCurrentUserAvatar, imgSr
       <div>
         <div className={`${s.question} relative text-sm text-white`}>
           <div
-            className={'mr-2 py-3 px-4 rounded-tl-2xl rounded-b-2xl shadow-[0_6px_16px_rgba(232,98,10,0.24)]'}
+            className={'py-3 px-4 rounded-2xl rounded-br-md shadow-[0_6px_16px_rgba(232,98,10,0.24)]'}
             style={{ background: 'linear-gradient(148deg, #F7911E 0%, #E8620A 100%)' }}
           >
             {imgSrcs && imgSrcs.length > 0 && (
@@ -34,9 +34,7 @@ const Question: FC<IQuestionProps> = ({ id, content, useCurrentUserAvatar, imgSr
             {userName?.[0].toLocaleUpperCase()}
           </div>
         )
-        : (
-          <div className={`${s.questionIcon} w-10 h-10 shrink-0 `}></div>
-        )}
+        : null}
     </div>
   )
 }
