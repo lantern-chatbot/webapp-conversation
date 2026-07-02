@@ -6,6 +6,7 @@ import produce, { setAutoFreeze } from 'immer'
 import { useBoolean, useGetState } from 'ahooks'
 import useConversation from '@/hooks/use-conversation'
 import Toast from '@/app/components/base/toast'
+import Sidebar from '@/app/components/sidebar'
 import ConfigSence from '@/app/components/config-scence'
 import Header from '@/app/components/header'
 import { fetchAppParams, fetchChatList, fetchConversations, generationConversationName, sendChatMessage, updateFeedback } from '@/service'
@@ -667,7 +668,7 @@ const Main: FC<IMainProps> = () => {
   if (!APP_ID || !APP_INFO || !promptConfig) { return <Loading type='app' /> }
 
   return (
-    <div style={{ background: 'linear-gradient(180deg, #FFFFFF, #FCF9F4)' }}>
+    <div style={{ background: 'linear-gradient(180deg, #FFFBF5, #FBF4EA)' }}>
       <Header
         title={APP_INFO.title}
         isMobile={false}
@@ -685,7 +686,7 @@ const Main: FC<IMainProps> = () => {
           </div>
         )}
         {/* main */}
-        <div className='flex-grow flex flex-col h-[calc(100vh_-_3rem)] overflow-y-auto'>
+        <div className='flex-grow flex flex-col h-[calc(100vh_-_3.5rem)] overflow-y-auto' style={{ background: 'linear-gradient(180deg, #FFFCF7 0%, #FBF4EA 100%)' }}>
           <ConfigSence
             conversationName={conversationName}
             hasSetInputs={hasSetInputs}
