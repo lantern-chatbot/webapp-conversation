@@ -169,30 +169,26 @@ const Welcome: FC<IWelcomeProps> = ({
   }
 
   const canChat = () => {
-    const vars = promptConfig?.prompt_variables ?? []
+    const vars = promptConfig?.prompt_variables ?? [];
 
-    const hasEmptyRequired = vars.some((v) => {
-      const isRequired = v?.required ?? true
-      if (!isRequired) {
-        return false
-      }
+    const hasEmptyRequired = vars.some(v => {
+      const isRequired = v?.required ?? true;
+      if (!isRequired) return false;
 
-      const val = inputs?.[v.key]
+      const val = inputs?.[v.key];
 
-      if (typeof val === 'string') {
-        return val.trim() === ''
-      }
+      if (typeof val === 'string') return val.trim() === '';
 
-      return val === undefined || val === null
-    })
+      return val === undefined || val === null;
+    });
 
     if (hasEmptyRequired) {
-      logError(t('app.errorMessage.valueOfVarRequired'))
-      return false
+      logError(t('app.errorMessage.valueOfVarRequired'));
+      return false;
     }
 
-    return true
-  }
+    return true;
+  };
 
   const handleChat = () => {
     if (!canChat()) { return }
@@ -391,7 +387,7 @@ const Welcome: FC<IWelcomeProps> = ({
               </div>
               : <div>
               </div>}
-            <a className='flex items-center pr-3 space-x-3' href='https://lantern-inc.jp/' target='_blank'>
+            <a className='flex items-center pr-3 space-x-3' href="https://lantern-inc.jp/" target="_blank">
               <span className='uppercase'>{t('app.chat.powerBy')}</span>
               <span style={{ fontFamily: "'Zen Kaku Gothic New', sans-serif", fontWeight: 700, fontSize: '13px', color: '#E8620A' }}>LANTERN</span>
             </a>
