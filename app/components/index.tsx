@@ -6,7 +6,6 @@ import produce, { setAutoFreeze } from 'immer'
 import { useBoolean, useGetState } from 'ahooks'
 import useConversation from '@/hooks/use-conversation'
 import Toast from '@/app/components/base/toast'
-import Sidebar from '@/app/components/sidebar'
 import ConfigSence from '@/app/components/config-scence'
 import Header from '@/app/components/header'
 import { fetchAppParams, fetchChatList, fetchConversations, generationConversationName, sendChatMessage, updateFeedback } from '@/service'
@@ -279,6 +278,28 @@ const Main: FC<IMainProps> = () => {
         if (isNotNewConversation) { setCurrConversationId(_conversationId, APP_ID, false) }
 
         setInited(true)
+
+        // Auto-start chat if no required prompt variables (skip welcome screen)
+        if (!isNotNewConversation && prompt_variables.every((v: any) => !v.required)) {
+          // Trigger chat start automatically
+          setTimeout(() => {
+            const emptyInputs: Record<string, any> = {}
+            prompt_variables.forEach((v: any) => { emptyInputs[v.key] = '' })
+            createNewChat()
+            setConversationIdChangeBecauseOfNew(true)
+            setCurrInputs(emptyInputs)
+            setChatStarted()
+            const openStatement = {
+              id: `${Date.now()}`,
+              content: introduction || '',
+              isAnswer: true,
+              feedbackDisabled: true,
+              isOpeningStatement: isShowPrompt,
+              suggestedQuestions: suggested_questions,
+            }
+            if (introduction) { setChatList([openStatement]) }
+          }, 100)
+        }
       }
       catch (e: any) {
         if (e.status === 404) {
@@ -306,9 +327,8 @@ const Main: FC<IMainProps> = () => {
 
     let emptyRequiredInput = false
     promptConfig.prompt_variables.forEach((item) => {
-      if (item.required && !currInputs[item.key]) {
+      if (item.required && !currInputs[item.key])
         emptyRequiredInput = true
-      }
     })
 
     if (emptyRequiredInput) {
@@ -638,15 +658,8 @@ const Main: FC<IMainProps> = () => {
   }
 
   const renderSidebar = () => {
-    if (!APP_ID || !APP_INFO || !promptConfig) { return null }
-    return (
-      <Sidebar
-        list={conversationList}
-        onCurrentIdChange={handleConversationIdChange}
-        currentId={currConversationId}
-        copyRight={APP_INFO.copyright || APP_INFO.title}
-      />
-    )
+    // サイドバーは埋め込み用のため非表示
+    return null
   }
 
   if (appUnavailable) { return <AppUnavailable isUnknownReason={isUnknownReason} errMessage={!hasSetAppConfig ? 'Please set APP_ID and API_KEY in config/index.tsx' : ''} /> }
@@ -657,7 +670,7 @@ const Main: FC<IMainProps> = () => {
     <div style={{ background: 'linear-gradient(180deg, #FFFFFF, #FCF9F4)' }}>
       <Header
         title={APP_INFO.title}
-        isMobile={isMobile}
+        isMobile={false}
         onShowSideBar={showSidebar}
         onCreateNewChat={() => handleConversationIdChange('-1')}
       />
@@ -687,7 +700,7 @@ const Main: FC<IMainProps> = () => {
 
           {
             hasSetInputs && (
-              <div className='relative grow pc:w-[794px] max-w-full mobile:w-full pb-[180px] mx-auto mb-3.5' ref={chatListDomRef}>
+              <div className='relative grow max-w-full w-full pb-[180px] mx-auto mb-3.5' ref={chatListDomRef}>
                 <Chat
                   chatList={chatList}
                   onSend={handleSend}
