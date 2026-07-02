@@ -8,7 +8,7 @@ export const APP_INFO: AppInfo = {
   copyright: 'LANTERN inc.',
   privacy_policy: 'https://lantern-inc.jp/',
   default_language: 'ja-Hans',
-  disable_session_same_site: false, // set it to true if you want to embed the chatbot in an iframe
+  disable_session_same_site: true, // set it to true if you want to embed the chatbot in an iframe
 }
 
 export const isShowPrompt = false
