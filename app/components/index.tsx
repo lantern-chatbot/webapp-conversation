@@ -174,13 +174,12 @@ const Main: FC<IMainProps> = () => {
   const [chatList, setChatList, getChatList] = useGetState<ChatItem[]>([])
   const chatListDomRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
-    // scroll to bottom with page-level scrolling
+    // scroll only the chat container (never the page/iframe parent)
     if (chatListDomRef.current) {
       setTimeout(() => {
-        chatListDomRef.current?.scrollIntoView({
-          behavior: 'auto',
-          block: 'end',
-        })
+        const scroller = chatListDomRef.current?.parentElement
+        if (scroller)
+          scroller.scrollTop = scroller.scrollHeight
       }, 50)
     }
   }, [chatList, currConversationId])
@@ -668,7 +667,7 @@ const Main: FC<IMainProps> = () => {
   if (!APP_ID || !APP_INFO || !promptConfig) { return <Loading type='app' /> }
 
   return (
-    <div style={{ background: '#FAF7F2' }}>
+    <div className='flex flex-col h-screen overflow-hidden' style={{ background: '#FAF7F2' }}>
       <Header
         title={APP_INFO.title}
         isMobile={false}
@@ -676,7 +675,7 @@ const Main: FC<IMainProps> = () => {
         onCreateNewChat={() => handleConversationIdChange('-1')}
         onQuickAction={(message) => handleSend(message, [])}
       />
-      <div className="flex bg-white overflow-hidden">
+      <div className="flex flex-1 min-h-0 bg-white overflow-hidden">
         {/* sidebar */}
         {!isMobile && renderSidebar()}
         {isMobile && isShowSidebar && (
@@ -687,7 +686,7 @@ const Main: FC<IMainProps> = () => {
           </div>
         )}
         {/* main */}
-        <div className='flex-grow flex flex-col h-[calc(100vh_-_3.5rem)] overflow-y-auto' style={{ background: 'linear-gradient(180deg, #FFFCF8 0%, #FAF3EA 100%)' }}>
+        <div className='flex-grow flex flex-col h-full overflow-y-auto' style={{ background: 'linear-gradient(180deg, #FFFCF8 0%, #FAF3EA 100%)' }}>
           <ConfigSence
             conversationName={conversationName}
             hasSetInputs={hasSetInputs}
