@@ -23,53 +23,53 @@
 
 @keyframes dot-flashing {
   0% {
-    background-color: #667085;
+    background-color: #E8620A;
   }
 
   50%,
   100% {
-    background-color: rgba(102, 112, 133, 0.3);
+    background-color: rgba(232, 98, 10, 0.25);
   }
 }
 
 @keyframes dot-flashing-avatar {
   0% {
-    background-color: #155EEF;
+    background-color: #E8620A;
   }
 
   50%,
   100% {
-    background-color: rgba(21, 94, 239, 0.3);
+    background-color: rgba(232, 98, 10, 0.25);
   }
 }
 
 .text,
 .text::before,
 .text::after {
-  width: 4px;
-  height: 4px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  background-color: #667085;
-  color: #667085;
+  background-color: #E8620A;
+  color: #E8620A;
   animation-name: dot-flashing;
 }
 
 .text::before {
-  left: -7px;
+  left: -10px;
 }
 
 .text::after {
-  left: 7px;
+  left: 10px;
 }
 
 .avatar,
 .avatar::before,
 .avatar::after {
-  width: 2px;
-  height: 2px;
+  width: 3px;
+  height: 3px;
   border-radius: 50%;
-  background-color: #155EEF;
-  color: #155EEF;
+  background-color: #E8620A;
+  color: #E8620A;
   animation-name: dot-flashing-avatar;
 }
 

@@ -1,21 +1,51 @@
 .answerIcon {
   position: relative;
-  background: radial-gradient(circle at 50% 38%, #FFE7C4, #FFF6EA);
-  border: 1px solid rgba(232, 98, 10, 0.16);
+  background: radial-gradient(circle at 50% 35%, #FFEBD0, #FFF6EA);
+  border: 1px solid rgba(232, 98, 10, 0.18);
   border-radius: 50%;
-  box-shadow: 0 4px 12px rgba(232, 98, 10, 0.14);
+  box-shadow: 0 4px 14px rgba(232, 98, 10, 0.16), inset 0 1px 2px rgba(255, 255, 255, 0.7);
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+  overflow: visible;
   animation: ltn-avatar-in 0.4s ease both;
 }
 
 .answerIcon::after {
   content: '';
-  width: 60%;
-  height: 60%;
+  width: 58%;
+  height: 58%;
   background: url(./icons/lantern-avatar.png) center/contain no-repeat;
+  animation: ltn-flicker 2.6s ease-in-out infinite;
+}
+
+/* Warm glowing pulse ring while the assistant is thinking */
+.answerIconPulse::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 2px solid rgba(232, 98, 10, 0.5);
+  animation: ltn-ring 1.4s ease-out infinite;
+}
+
+.answerIconPulse::after {
+  animation: ltn-flicker-fast 0.9s ease-in-out infinite;
+}
+
+@keyframes ltn-ring {
+  0%   { transform: scale(0.9); opacity: 0.9; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
+@keyframes ltn-flicker {
+  0%, 100% { opacity: 0.92; }
+  50%      { opacity: 1; }
+}
+
+@keyframes ltn-flicker-fast {
+  0%, 100% { opacity: 0.7; transform: scale(0.96); }
+  50%      { opacity: 1; transform: scale(1.04); }
 }
 
 .typeingIcon {

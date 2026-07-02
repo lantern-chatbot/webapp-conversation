@@ -18,8 +18,8 @@ const Question: FC<IQuestionProps> = ({ id, content, useCurrentUserAvatar, imgSr
       <div>
         <div className={`${s.question} relative text-sm text-white`}>
           <div
-            className={'py-3 px-4 rounded-2xl rounded-br-md shadow-[0_6px_16px_rgba(232,98,10,0.24)]'}
-            style={{ background: 'linear-gradient(148deg, #F7911E 0%, #E8620A 100%)' }}
+            className={'py-3 px-4 rounded-2xl rounded-br-md shadow-[0_6px_18px_rgba(232,98,10,0.28)]'}
+            style={{ background: 'linear-gradient(148deg, #FBA43A 0%, #F5871F 50%, #E8620A 100%)', lineHeight: 1.75 }}
           >
             {imgSrcs && imgSrcs.length > 0 && (
               <ImageGallery srcs={imgSrcs} />
