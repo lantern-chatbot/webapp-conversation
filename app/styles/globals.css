@@ -113,6 +113,45 @@ a {
   text-decoration: none;
 }
 
+/* LANTERN: readable links and spacing inside chat markdown output. */
+.streamdown-markdown p {
+  margin: 0 0 0.75rem;
+}
+
+.streamdown-markdown p:last-child {
+  margin-bottom: 0;
+}
+
+.streamdown-markdown ul,
+.streamdown-markdown ol {
+  margin: 0.5rem 0 0.75rem;
+  padding-left: 1.25rem;
+}
+
+.streamdown-markdown ul {
+  list-style: disc;
+}
+
+.streamdown-markdown ol {
+  list-style: decimal;
+}
+
+.streamdown-markdown li + li {
+  margin-top: 0.25rem;
+}
+
+.streamdown-markdown a {
+  color: #D66A00;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  overflow-wrap: anywhere;
+}
+
+.streamdown-markdown a:hover {
+  color: #B45309;
+}
+
 /* @media (prefers-color-scheme: dark) {
   html {
     color-scheme: dark;
