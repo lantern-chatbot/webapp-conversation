@@ -22,6 +22,10 @@ export const setSession = (sessionId: string) => {
   return { 'Set-Cookie': `session_id=${sessionId}` }
 }
 
-if (!DIFY_API_KEY) { throw new Error('DIFY_API_KEY is not configured') }
+let client: ChatClient | undefined
 
-export const client = new ChatClient(DIFY_API_KEY, API_URL || undefined)
+export const getDifyClient = () => {
+  if (!DIFY_API_KEY) { throw new Error('DIFY_API_KEY is not configured') }
+  client ||= new ChatClient(DIFY_API_KEY, API_URL || undefined)
+  return client
+}

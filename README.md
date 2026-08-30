@@ -17,7 +17,7 @@ DIFY_API_KEY=
 NEXT_PUBLIC_API_URL=
 ```
 
-When deploying to Vercel, add the same three variables in Project Settings > Environment Variables. `DIFY_API_KEY` must remain server-only. Remove the legacy `NEXT_PUBLIC_APP_KEY` variable after the new deployment succeeds.
+When deploying to Vercel, add the same three variables in Project Settings > Environment Variables. `DIFY_API_KEY` must remain server-only. During migration, the server accepts the legacy `NEXT_PUBLIC_APP_KEY` as a fallback, so the current deployment keeps working. Remove the legacy variable after `DIFY_API_KEY` is configured and the new deployment succeeds.
 
 Config more in `config/index.ts` file:
 ```js
@@ -49,8 +49,8 @@ Difyの回答に次の制御トークンが含まれると、フロントエン�
 
 ## Dify and Vercel deployment order
 
-1. 現在利用中のDify APIキーを、Vercelの `DIFY_API_KEY` にサーバー専用変数として追加します。現在の `NEXT_PUBLIC_APP_ID` と `NEXT_PUBLIC_API_URL` はそのまま使います。
-2. このリポジトリをGitHubへpushし、Vercelでフロントエンドを先にデプロイします。
+1. 現在の `NEXT_PUBLIC_APP_ID`、`NEXT_PUBLIC_APP_KEY`、`NEXT_PUBLIC_API_URL` を残したまま、このリポジトリをGitHubへpushしてVercelでフロントエンドを先にデプロイします。旧APIキー変数は移行用フォールバックとしてサーバー側だけで利用されます。
+2. 現在利用中のDify APIキーを、Vercelの `DIFY_API_KEY` にサーバー専用変数として追加します。
 3. Difyで別途納品される `lantern_chatbot_dify.yml` をDSLとしてインポートします。
 4. インポート後のChatflowでLLM、Knowledge Retrievalのナレッジベース、各環境変数を確認して公開します。
 5. DifyのAPI Accessで新しいAPIキーを発行し、DifyのアプリURLからApp IDを確認します。

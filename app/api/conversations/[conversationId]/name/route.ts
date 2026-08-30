@@ -1,6 +1,6 @@
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
-import { client, getInfo } from '@/app/api/utils/common'
+import { getDifyClient, getInfo } from '@/app/api/utils/common'
 
 export async function POST(request: NextRequest, { params }: {
   params: Promise<{ conversationId: string }>
@@ -14,6 +14,7 @@ export async function POST(request: NextRequest, { params }: {
   const { user } = getInfo(request)
 
   // auto generate name
+  const client = getDifyClient()
   const { data } = await client.renameConversation(conversationId, name, user, auto_generate)
   return NextResponse.json(data)
 }
