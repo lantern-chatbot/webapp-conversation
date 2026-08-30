@@ -1,6 +1,6 @@
 import type { Annotation } from './log'
 import type { Locale } from '@/i18n'
-import type { ThoughtItem } from '@/app/components/chat/type'
+import type { CitationItem, ThoughtItem } from '@/app/components/chat/type'
 
 export interface PromptVariable {
   key: string
@@ -88,6 +88,7 @@ export interface IChatItem {
   log?: { role: string, text: string }[]
   agent_thoughts?: ThoughtItem[]
   message_files?: VisionFile[]
+  citation?: CitationItem[]
 }
 
 export type ChatItem = IChatItem & {
@@ -148,9 +149,9 @@ export interface ImageFile {
 export interface VisionFile {
   id?: string
   type: string
-  transfer_method: TransferMethod
+  transfer_method?: TransferMethod
   url: string
-  upload_file_id: string
+  upload_file_id?: string
   belongs_to?: string
 }
 

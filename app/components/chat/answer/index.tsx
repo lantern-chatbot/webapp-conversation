@@ -11,7 +11,9 @@ import StreamdownMarkdown from '@/app/components/base/streamdown-markdown'
 import Tooltip from '@/app/components/base/tooltip'
 import { randomString } from '@/utils/string'
 import ImageGallery from '../../base/image-gallery'
+import CitationList from '../citation-list'
 import LoadingAnim from '../loading-anim'
+import RichAnswer from '../rich-content'
 import s from '../style.module.css'
 import Thought from '../thought'
 
@@ -80,7 +82,7 @@ const Answer: FC<IAnswerProps> = ({
   allToolIcons,
   suggestionClick = () => { },
 }) => {
-  const { id, content, feedback, agent_thoughts, suggestedQuestions = [] } = item
+  const { id, content, feedback, agent_thoughts, suggestedQuestions = [], citation } = item
   const isAgentMode = !!agent_thoughts && agent_thoughts.length > 0
 
   const { t } = useTranslation()
@@ -192,8 +194,14 @@ const Answer: FC<IAnswerProps> = ({
                 : (isAgentMode
                   ? agentModeAnswer
                   : (
-                    <StreamdownMarkdown content={content} />
+                    <RichAnswer content={content} />
                   ))}
+              {!isAgentMode && getImgs(item.message_files).length > 0 && (
+                <div className="mt-3">
+                  <ImageGallery srcs={getImgs(item.message_files).map(file => file.url)} />
+                </div>
+              )}
+              <CitationList items={citation} />
               {suggestedQuestions.length > 0 && (
                 <div className="mt-3">
                   <div className="flex gap-1 mt-1 flex-wrap">

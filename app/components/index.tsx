@@ -18,7 +18,7 @@ import useBreakpoints, { MediaType } from '@/hooks/use-breakpoints'
 import Loading from '@/app/components/base/loading'
 import { replaceVarWithValues, userInputsFormToPromptVariables } from '@/utils/prompt'
 import AppUnavailable from '@/app/components/app-unavailable'
-import { API_KEY, APP_ID, APP_INFO, isShowPrompt, promptTemplate } from '@/config'
+import { APP_ID, APP_INFO, isShowPrompt, promptTemplate } from '@/config'
 import type { Annotation as AnnotationType } from '@/types/log'
 import { addFileInfos, sortAgentSorts } from '@/utils/tools'
 
@@ -30,7 +30,7 @@ const Main: FC<IMainProps> = () => {
   const { t } = useTranslation()
   const media = useBreakpoints()
   const isMobile = media === MediaType.mobile
-  const hasSetAppConfig = APP_ID && API_KEY
+  const hasSetAppConfig = !!APP_ID
 
   /*
   * app info
@@ -144,6 +144,7 @@ const Main: FC<IMainProps> = () => {
             feedback: item.feedback,
             isAnswer: true,
             message_files: item.message_files?.filter((file: any) => file.belongs_to === 'assistant') || [],
+            citation: item.retriever_resources || [],
           })
         })
         setChatList(newChatList)
@@ -505,7 +506,18 @@ const Main: FC<IMainProps> = () => {
       },
       onFile(file) {
         const lastThought = responseItem.agent_thoughts?.[responseItem.agent_thoughts?.length - 1]
-        if (lastThought) { lastThought.message_files = [...(lastThought as any).message_files, { ...file }] }
+        if (lastThought) {
+          const thoughtFiles = lastThought.message_files || []
+          if (!thoughtFiles.some(existing => existing.id === file.id || existing.url === file.url)) {
+            lastThought.message_files = [...thoughtFiles, { ...file }]
+          }
+        }
+        else {
+          const answerFiles = responseItem.message_files || []
+          if (!answerFiles.some(existing => existing.id === file.id || existing.url === file.url)) {
+            responseItem.message_files = [...answerFiles, { ...file }]
+          }
+        }
 
         updateCurrentQA({
           responseItem,
@@ -551,6 +563,7 @@ const Main: FC<IMainProps> = () => {
         })
       },
       onMessageEnd: (messageEnd) => {
+        responseItem.citation = messageEnd.metadata?.retriever_resources || []
         if (messageEnd.metadata?.annotation_reply) {
           responseItem.id = messageEnd.id
           responseItem.annotation = ({
@@ -570,8 +583,6 @@ const Main: FC<IMainProps> = () => {
           setChatList(newListWithAnswer)
           return
         }
-        // not support show citation
-        // responseItem.citation = messageEnd.retriever_resources
         const newListWithAnswer = produce(
           getChatList().filter(item => item.id !== responseItem.id && item.id !== placeholderAnswerId),
           (draft) => {
@@ -668,7 +679,7 @@ const Main: FC<IMainProps> = () => {
     return null
   }
 
-  if (appUnavailable) { return <AppUnavailable isUnknownReason={isUnknownReason} errMessage={!hasSetAppConfig ? 'Please set APP_ID and API_KEY in config/index.tsx' : ''} /> }
+  if (appUnavailable) { return <AppUnavailable isUnknownReason={isUnknownReason} errMessage={!hasSetAppConfig ? 'Please set NEXT_PUBLIC_APP_ID in Vercel environment variables' : ''} /> }
 
   if (!APP_ID || !APP_INFO || !promptConfig) { return <Loading type='app' /> }
 

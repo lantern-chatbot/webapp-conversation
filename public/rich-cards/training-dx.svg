@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-labelledby="title desc">
+  <title id="title">DX training</title><desc id="desc">An open book and three growing lights representing team learning.</desc>
+  <defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#fff9ef"/><stop offset="1" stop-color="#d7c9ad"/></linearGradient></defs>
+  <rect width="640" height="360" rx="28" fill="url(#bg)"/><path d="M112 116c78-24 145-11 208 35v151c-63-46-130-59-208-35z" fill="#fffdf8" stroke="#67513c" stroke-width="8"/><path d="M528 116c-78-24-145-11-208 35v151c63-46 130-59 208-35z" fill="#f6e4c8" stroke="#67513c" stroke-width="8"/><path d="M320 151v151" stroke="#67513c" stroke-width="8"/><circle cx="226" cy="78" r="25" fill="#c37a3d"/><circle cx="320" cy="59" r="31" fill="#98602f"/><circle cx="414" cy="78" r="25" fill="#72806d"/><path d="M226 44V24M320 18V0M414 44V24" stroke="#8b5a30" stroke-width="7" stroke-linecap="round"/>
+</svg>

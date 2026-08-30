@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-labelledby="title desc">
+  <title id="title">Case studies</title><desc id="desc">Layered project cards with a completed check mark.</desc>
+  <defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#fff8ee"/><stop offset="1" stop-color="#ddc5aa"/></linearGradient></defs>
+  <rect width="640" height="360" rx="28" fill="url(#bg)"/><rect x="116" y="91" width="332" height="205" rx="20" fill="#d6b081" transform="rotate(-7 116 91)"/><rect x="156" y="68" width="356" height="224" rx="20" fill="#fffdf9" stroke="#5e4936" stroke-width="8"/><path d="M204 129h160M204 173h248M204 217h171" stroke="#9a7b5b" stroke-width="14" stroke-linecap="round"/><circle cx="457" cy="98" r="56" fill="#9b5e2d"/><path d="m430 98 19 19 38-45" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

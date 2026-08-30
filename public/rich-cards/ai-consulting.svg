@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-labelledby="title desc">
+  <title id="title">AI consulting</title><desc id="desc">A connected network surrounding a warm central light.</desc>
+  <defs><radialGradient id="bg"><stop stop-color="#f8dfb4"/><stop offset="1" stop-color="#efe6d9"/></radialGradient></defs>
+  <rect width="640" height="360" rx="28" fill="url(#bg)"/><g stroke="#8a5c32" stroke-width="5" opacity=".7"><path d="M320 180 205 98M320 180l-127 91M320 180l128-91M320 180l116 102M205 98l-12 173M448 89l-12 193"/></g><g fill="#fffaf2" stroke="#6d4a2f" stroke-width="7"><circle cx="205" cy="98" r="28"/><circle cx="193" cy="271" r="28"/><circle cx="448" cy="89" r="28"/><circle cx="436" cy="282" r="28"/></g><circle cx="320" cy="180" r="67" fill="#a7612c"/><path d="M300 181h40M320 161v40" stroke="#fff" stroke-width="10" stroke-linecap="round"/><circle cx="320" cy="180" r="92" fill="none" stroke="#d39349" stroke-width="5" stroke-dasharray="8 12"/>
+</svg>

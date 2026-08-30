@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-labelledby="title desc">
+  <title id="title">E-commerce</title><desc id="desc">A shopping bag and storefront representing e-commerce.</desc>
+  <defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#fff8e8"/><stop offset="1" stop-color="#d8c7a2"/></linearGradient></defs>
+  <rect width="640" height="360" rx="28" fill="url(#bg)"/><path d="M173 116h294l-20 166H193z" fill="#fffdf8" stroke="#554838" stroke-width="8" stroke-linejoin="round"/><path d="M223 116c0-54 43-82 97-82s97 28 97 82" fill="none" stroke="#9a612d" stroke-width="12" stroke-linecap="round"/><rect x="259" y="162" width="122" height="82" rx="14" fill="#e8c997"/><path d="M287 196h66M320 172v48" stroke="#9a612d" stroke-width="10" stroke-linecap="round"/><circle cx="482" cy="91" r="38" fill="#b96a31"/><path d="m465 91 12 12 23-27" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

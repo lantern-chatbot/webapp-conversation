@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-labelledby="title desc">
+  <title id="title">Branding</title><desc id="desc">A warm abstract illustration of a brand core radiating outward.</desc>
+  <defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#fff8ee"/><stop offset="1" stop-color="#e8cda9"/></linearGradient></defs>
+  <rect width="640" height="360" rx="28" fill="url(#bg)"/><circle cx="320" cy="180" r="116" fill="none" stroke="#b87832" stroke-width="3" opacity=".35"/><circle cx="320" cy="180" r="76" fill="#f0d8b9"/><circle cx="320" cy="180" r="36" fill="#8d5424"/><path d="M320 36v40M320 284v40M176 180h40M424 180h40M218 78l28 28M394 254l28 28M422 78l-28 28M246 254l-28 28" stroke="#8d5424" stroke-width="8" stroke-linecap="round" opacity=".8"/>
+</svg>

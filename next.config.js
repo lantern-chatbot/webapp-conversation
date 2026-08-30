@@ -16,7 +16,8 @@ const nextConfig = {
     // https://nextjs.org/docs/api-reference/next.config.js/ignoring-typescript-errors
     ignoreBuildErrors: true,
   },
-  output: 'standalone',
+  // Vercel provides its own output tracing. Keep standalone output for Docker only.
+  ...(process.env.VERCEL ? {} : { output: 'standalone' }),
 }
 
 module.exports = nextConfig

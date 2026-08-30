@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-labelledby="title desc">
+  <title id="title">Internship</title><desc id="desc">Steps leading upward toward a bright opportunity.</desc>
+  <defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#fff7e9"/><stop offset="1" stop-color="#d8cbb2"/></linearGradient></defs>
+  <rect width="640" height="360" rx="28" fill="url(#bg)"/><path d="M95 294h116v-65h110v-65h110V99h114" fill="none" stroke="#705038" stroke-width="20" stroke-linejoin="round"/><circle cx="479" cy="63" r="42" fill="#c47636"/><path d="M479 5v20M479 101v20M421 63h20M517 63h20M439 23l14 14M505 89l14 14M519 23l-14 14M453 89l-14 14" stroke="#9b612f" stroke-width="8" stroke-linecap="round"/><circle cx="162" cy="181" r="29" fill="#8a633f"/><path d="M162 211v55M162 230l42-24M162 230l-40-25" stroke="#8a633f" stroke-width="13" stroke-linecap="round"/>
+</svg>

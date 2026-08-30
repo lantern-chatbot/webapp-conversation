@@ -57,6 +57,7 @@ export interface ThoughtItem {
 
 export interface CitationItem {
   content: string
+  url?: string
   data_source_type: string
   dataset_name: string
   dataset_id: string

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-labelledby="title desc">
+  <title id="title">Company and people</title><desc id="desc">A group gathered around a central lantern light.</desc>
+  <defs><radialGradient id="bg"><stop stop-color="#ffe6b8"/><stop offset="1" stop-color="#e9ded0"/></radialGradient></defs>
+  <rect width="640" height="360" rx="28" fill="url(#bg)"/><path d="M275 134h90l18 127H257z" fill="#a9652e" stroke="#5f4631" stroke-width="8"/><path d="M287 134c0-48 66-48 66 0" fill="none" stroke="#5f4631" stroke-width="8"/><circle cx="320" cy="190" r="30" fill="#ffe09f"/><g fill="#fdf8ef" stroke="#72543a" stroke-width="7"><circle cx="177" cy="123" r="31"/><circle cx="463" cy="123" r="31"/><circle cx="175" cy="259" r="31"/><circle cx="465" cy="259" r="31"/></g><g stroke="#8b633d" stroke-width="7"><path d="M205 139l61 36M435 139l-61 36M207 244l54-32M433 244l-54-32"/></g>
+</svg>
