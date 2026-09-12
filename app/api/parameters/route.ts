@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
       headers: setSession(sessionId),
     })
   }
-  catch (error) {
+  catch {
     return NextResponse.json([])
   }
 }

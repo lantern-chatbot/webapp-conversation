@@ -46,8 +46,6 @@ const quickActions = [
 
 const Header: FC<IHeaderProps> = ({
   title,
-  isMobile,
-  onShowSideBar,
   onCreateNewChat,
   onQuickAction,
 }) => {

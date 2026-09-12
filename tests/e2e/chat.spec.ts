@@ -9,6 +9,10 @@ test.beforeEach(async ({ page, request }) => {
   })
   await page.goto('/')
   await expect(page.getByRole('textbox')).toBeVisible()
+  // An ordinary state update must not repeat app initialization.
+  await page.route('**/api/parameters', () => {
+    throw new Error('App parameters were requested again after initialization')
+  })
 })
 
 test('streams an answer through the API, hides tokens and preserves the conversation', async ({ page, request }) => {

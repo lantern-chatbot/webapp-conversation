@@ -51,14 +51,12 @@ const PromptEditorHeightResizeWrap: FC<Props> = ({
     wait: 0,
   })
 
-  const handleResize = useCallback(didHandleResize, [isResizing, height, minHeight, clientY])
-
   useEffect(() => {
-    document.addEventListener('mousemove', handleResize)
+    document.addEventListener('mousemove', didHandleResize)
     return () => {
-      document.removeEventListener('mousemove', handleResize)
+      document.removeEventListener('mousemove', didHandleResize)
     }
-  }, [handleResize])
+  }, [didHandleResize])
 
   useEffect(() => {
     document.addEventListener('mouseup', handleStopResize)

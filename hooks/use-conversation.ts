@@ -10,7 +10,7 @@ function useConversation() {
   const [conversationList, setConversationList] = useState<ConversationItem[]>([])
   const [currConversationId, doSetCurrConversationId, getCurrConversationId] = useGetState<string>('-1')
   // when set conversation id, we do not have set appId
-  const setCurrConversationId = (id: string, appId: string, isSetToLocalStroge = true, newConversationName = '') => {
+  const setCurrConversationId = (id: string, appId: string, isSetToLocalStroge = true) => {
     doSetCurrConversationId(id)
     if (isSetToLocalStroge && id !== '-1') {
       // conversationIdInfo: {[appId1]: conversationId1, [appId2]: conversationId2}
