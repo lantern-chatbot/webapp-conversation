@@ -27,7 +27,6 @@ export interface IWelcomeProps {
 }
 
 const Welcome: FC<IWelcomeProps> = ({
-  conversationName,
   hasSetInputs,
   isPublicVersion,
   siteInfo,
@@ -64,7 +63,7 @@ const Welcome: FC<IWelcomeProps> = ({
     else {
       setInputs(savedInputs)
     }
-  }, [savedInputs])
+  }, [savedInputs, promptConfig])
 
   const highLightPromoptTemplate = (() => {
     if (!promptConfig) { return '' }

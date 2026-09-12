@@ -15,7 +15,7 @@ const ExpandBtn: FC<Props> = ({
 }) => {
   const handleToggle = useCallback(() => {
     onExpandChange(!isExpand)
-  }, [isExpand])
+  }, [isExpand, onExpandChange])
 
   const Icon = isExpand ? Collapse04 : Expand04
   return (

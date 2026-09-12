@@ -1,7 +1,7 @@
 'use client'
 import classNames from 'classnames'
 import type { ReactNode } from 'react'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { createRoot } from 'react-dom/client'
 import {
   CheckCircleIcon,
@@ -28,7 +28,6 @@ export const useToastContext = () => useContext(ToastContext)
 
 const Toast = ({
   type = 'info',
-  duration,
   message,
   children,
 }: IToastProps) => {
@@ -83,30 +82,23 @@ export const ToastProvider = ({
 }: {
   children: ReactNode
 }) => {
-  const placeholder: IToastProps = {
-    type: 'info',
-    message: 'Toast message',
-    duration: 3000,
-  }
-  const [params, setParams] = React.useState<IToastProps>(placeholder)
-
-  const [mounted, setMounted] = useState(false)
+  const [params, setParams] = React.useState<IToastProps | null>(null)
 
   useEffect(() => {
-    if (mounted) {
-      setTimeout(() => {
-        setMounted(false)
-      }, params.duration || defaultDuring)
-    }
-  }, [mounted])
+    if (!params) { return }
+    const timer = setTimeout(() => {
+      setParams(null)
+    }, params.duration || defaultDuring)
+    return () => clearTimeout(timer)
+  }, [params])
 
   return <ToastContext.Provider value={{
     notify: (props) => {
-      setMounted(true)
-      setParams(props)
+      // Each notification gets its own lifetime, even if props are reused.
+      setParams({ ...props })
     },
   }}>
-    {mounted && <Toast {...params} />}
+    {params && <Toast {...params} />}
     {children}
   </ToastContext.Provider>
 }
@@ -123,7 +115,8 @@ Toast.notify = ({
     root.render(<Toast type={type} message={message} duration={duration} />)
     document.body.appendChild(holder)
     setTimeout(() => {
-      if (holder) { holder.remove() }
+      root.unmount()
+      holder.remove()
     }, duration || defaultDuring)
   }
 }

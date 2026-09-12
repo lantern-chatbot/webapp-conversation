@@ -16,7 +16,7 @@ function getValue(value: string, isValueArray: boolean, index: number) {
     try {
       return JSON.parse(value)[index]
     }
-    catch (e) {
+    catch {
     }
   }
   return value
@@ -31,7 +31,7 @@ const Thought: FC<IThoughtProps> = ({
     try {
       if (Array.isArray(JSON.parse(thought.tool))) { return [JSON.parse(thought.tool), true] }
     }
-    catch (e) {
+    catch {
     }
     return [[thought.tool], false]
   })()

@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useRef } from 'react'
+import { forwardRef, useCallback, useEffect, useRef } from 'react'
 import cn from 'classnames'
 
 interface IProps {
@@ -14,39 +14,32 @@ interface IProps {
   onKeyUp?: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void
 }
 
-const AutoHeightTextarea = forwardRef(
+const AutoHeightTextarea = forwardRef<HTMLTextAreaElement, IProps>(
   (
     { value, onChange, placeholder, className, minHeight = 36, maxHeight = 96, autoFocus, controlFocus, onKeyDown, onKeyUp }: IProps,
-    outerRef: any,
+    outerRef,
   ) => {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const ref = outerRef || useRef<HTMLTextAreaElement>(null)
+    const ref = useRef<HTMLTextAreaElement | null>(null)
+    const setRef = useCallback((element: HTMLTextAreaElement | null) => {
+      ref.current = element
+      if (typeof outerRef === 'function') { outerRef(element) }
+      else if (outerRef) { outerRef.current = element }
+    }, [outerRef])
 
-    const doFocus = () => {
-      if (ref.current) {
-        ref.current.setSelectionRange(value.length, value.length)
-        ref.current.focus()
-        return true
+    const focus = useCallback(() => {
+      const element = ref.current
+      if (element) {
+        element.setSelectionRange(element.value.length, element.value.length)
+        element.focus()
       }
-      return false
-    }
-
-    const focus = () => {
-      if (!doFocus()) {
-        let hasFocus = false
-        const runId = setInterval(() => {
-          hasFocus = doFocus()
-          if (hasFocus) { clearInterval(runId) }
-        }, 100)
-      }
-    }
+    }, [])
 
     useEffect(() => {
       if (autoFocus) { focus() }
-    }, [])
+    }, [autoFocus, focus])
     useEffect(() => {
       if (controlFocus) { focus() }
-    }, [controlFocus])
+    }, [controlFocus, focus])
 
     return (
       <div className='relative'>
@@ -54,7 +47,7 @@ const AutoHeightTextarea = forwardRef(
           {!value ? placeholder : value.replace(/\n$/, '\n ')}
         </div>
         <textarea
-          ref={ref}
+          ref={setRef}
           autoFocus={autoFocus}
           className={cn(className, 'absolute inset-0 resize-none overflow-hidden')}
           placeholder={placeholder}

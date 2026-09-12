@@ -73,7 +73,7 @@ GitHub Actionsの`PR validation`をPR作成・更新時、`main`へのpush時、
 
 | チェック名 | 内容 |
 | --- | --- |
-| `Lint, types and unit tests` | ESLint、TypeScript、カード制御トークンの単体テスト |
+| `Lint, types and unit tests` | ESLint、TypeScript、カード制御トークンの単体テスト、通知・選択肢・フォーカスのコンポーネントテスト |
 | `Build and browser tests` | 本番ビルドとPlaywrightによるPC・スマートフォン幅のチャット操作テスト |
 
 ローカルでも同じ検証を実行できます。
@@ -83,6 +83,7 @@ pnpm install --frozen-lockfile
 pnpm lint
 pnpm typecheck
 pnpm test
+pnpm test:components
 pnpm exec playwright install chromium
 pnpm test:e2e
 ```
@@ -103,7 +104,7 @@ pnpm test:e2e
 2. `Require status checks to pass`を有効にし、上表の2つのチェック名を追加する（初回実行後に選択可能）
 3. マージ前にブランチを最新の`main`へ更新することを必須にする
 
-既存のESLint warningは表示を継続し、errorでCIを失敗させます。型エラーとLintエラーを無視するビルド設定は使用しません。
+`pnpm lint`は`--max-warnings 0`で実行し、warningが1件でもあるとCIを失敗させます。コンポーネントテストでは、通知を連続表示したときのタイマー、選択肢更新時の選択保持、入力フォーカスとrefの受け渡しを検証します。型エラーとLintエラーを無視するビルド設定は使用しません。
 
 Dify側だけの変更ではフロントのPRイベントは発生しません。実Difyでの回答評価は、テスト用Difyアプリと評価ケースを準備したうえで、Dify変更時・定期実行の別ワークフローとして追加してください。
 

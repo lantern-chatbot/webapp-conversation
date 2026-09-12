@@ -76,7 +76,7 @@ const CodeEditor: FC<Props> = ({
     try {
       return JSON.stringify(value as object, null, 2)
     }
-    catch (e) {
+    catch {
       return value as string
     }
   })()

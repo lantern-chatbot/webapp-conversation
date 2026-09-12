@@ -3,7 +3,7 @@ import type { FC } from 'react'
 import React, { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import produce, { setAutoFreeze } from 'immer'
-import { useBoolean, useGetState } from 'ahooks'
+import { useBoolean, useGetState, useMemoizedFn } from 'ahooks'
 import useConversation from '@/hooks/use-conversation'
 import Toast from '@/app/components/base/toast'
 import ConfigSence from '@/app/components/config-scence'
@@ -51,7 +51,7 @@ const Main: FC<IMainProps> = () => {
 
   useEffect(() => {
     if (APP_INFO?.title) { document.title = `${APP_INFO.title} - Powered by Dify` }
-  }, [APP_INFO?.title])
+  }, [])
 
   // onData change thought (the produce obj). https://github.com/immerjs/immer/issues/576
   useEffect(() => {
@@ -101,7 +101,8 @@ const Main: FC<IMainProps> = () => {
   const conversationIntroduction = currConversationInfo?.introduction || ''
   const suggestedQuestions = currConversationInfo?.suggested_questions || []
 
-  const handleConversationSwitch = () => {
+  // Read the latest conversation state only when the active ID changes.
+  const handleConversationSwitch = useMemoizedFn(() => {
     if (!inited) { return }
 
     // update inputs of current conversation
@@ -152,8 +153,10 @@ const Main: FC<IMainProps> = () => {
     }
 
     if (isNewConversation && isChatStarted) { setChatList(generateNewChatListWithOpenStatement()) }
-  }
-  useEffect(handleConversationSwitch, [currConversationId, inited])
+  })
+  useEffect(() => {
+    handleConversationSwitch()
+  }, [currConversationId, inited, handleConversationSwitch])
 
   const handleConversationIdChange = (id: string) => {
     if (id === '-1') {
@@ -219,8 +222,8 @@ const Main: FC<IMainProps> = () => {
     return []
   }
 
-  // init
-  useEffect(() => {
+  // Initialize once; state updates must not restart the initial API requests.
+  const initializeApp = useMemoizedFn(() => {
     if (!hasSetAppConfig) {
       setAppUnavailable(true)
       return
@@ -311,10 +314,12 @@ const Main: FC<IMainProps> = () => {
         }
       }
     })()
-  }, [])
+  })
+  useEffect(() => {
+    initializeApp()
+  }, [initializeApp])
 
   const [isResponding, { setTrue: setRespondingTrue, setFalse: setRespondingFalse }] = useBoolean(false)
-  const [abortController, setAbortController] = useState<AbortController | null>(null)
   const { notify } = Toast
   const logError = (message: string) => {
     notify({ type: 'error', message })
@@ -337,13 +342,6 @@ const Main: FC<IMainProps> = () => {
     }
     return true
   }
-
-  const [controlFocus, setControlFocus] = useState(0)
-  const [openingSuggestedQuestions, setOpeningSuggestedQuestions] = useState<string[]>([])
-  const [messageTaskId, setMessageTaskId] = useState('')
-  const [hasStopResponded, setHasStopResponded, getHasStopResponded] = useGetState(false)
-  const [isRespondingConIsCurrCon, setIsRespondingConCurrCon, getIsRespondingConIsCurrCon] = useGetState(true)
-  const [userQuery, setUserQuery] = useState('')
 
   const updateCurrentQA = ({
     responseItem,
@@ -448,10 +446,7 @@ const Main: FC<IMainProps> = () => {
 
     setRespondingTrue()
     sendChatMessage(data, {
-      getAbortController: (abortController) => {
-        setAbortController(abortController)
-      },
-      onData: (message: string, isFirstMessage: boolean, { conversationId: newConversationId, messageId, taskId }: any) => {
+      onData: (message: string, isFirstMessage: boolean, { conversationId: newConversationId, messageId }: any) => {
         if (!isAgentMode) {
           responseItem.content = responseItem.content + message
         }
@@ -466,10 +461,8 @@ const Main: FC<IMainProps> = () => {
 
         if (isFirstMessage && newConversationId) { tempNewConversationId = newConversationId }
 
-        setMessageTaskId(taskId)
         // has switched to other conversation
         if (prevTempNewConversationId !== getCurrConversationId()) {
-          setIsRespondingConCurrCon(false)
           return
         }
         updateCurrentQA({
@@ -496,7 +489,7 @@ const Main: FC<IMainProps> = () => {
             }
           }
         }
-        catch (e) {
+        catch {
           // 会話名の自動生成に失敗しても送信は続行できるようにする
         }
         setConversationIdChangeBecauseOfNew(false)
@@ -551,7 +544,6 @@ const Main: FC<IMainProps> = () => {
         }
         // has switched to other conversation
         if (prevTempNewConversationId !== getCurrConversationId()) {
-          setIsRespondingConCurrCon(false)
           return false
         }
 
@@ -610,8 +602,7 @@ const Main: FC<IMainProps> = () => {
           draft.splice(draft.findIndex(item => item.id === placeholderAnswerId), 1)
         }))
       },
-      onWorkflowStarted: ({ workflow_run_id, task_id }) => {
-        // taskIdRef.current = task_id
+      onWorkflowStarted: ({ workflow_run_id }) => {
         responseItem.workflow_run_id = workflow_run_id
         responseItem.workflowProcess = {
           status: WorkflowRunningStatus.Running,

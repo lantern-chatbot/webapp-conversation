@@ -41,13 +41,10 @@ const Select: FC<ISelectProps> = ({
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
 
-  const [selectedItem, setSelectedItem] = useState<Item | null>(null)
+  const [selectedValue, setSelectedValue] = useState(defaultValue)
+  const selectedItem = items.find(item => item.value === selectedValue) ?? null
   useEffect(() => {
-    let defaultSelect = null
-    const existed = items.find((item: Item) => item.value === defaultValue)
-    if (existed) { defaultSelect = existed }
-
-    setSelectedItem(defaultSelect)
+    setSelectedValue(defaultValue)
   }, [defaultValue])
 
   const filteredItems: Item[]
@@ -65,7 +62,7 @@ const Select: FC<ISelectProps> = ({
       className={className}
       onChange={(value: Item) => {
         if (!disabled) {
-          setSelectedItem(value)
+          setSelectedValue(value.value)
           setOpen(false)
           onSelect(value)
         }
@@ -139,13 +136,10 @@ const SimpleSelect: FC<ISelectProps> = ({
   disabled = false,
   onSelect,
 }) => {
-  const [selectedItem, setSelectedItem] = useState<Item | null>(null)
+  const [selectedValue, setSelectedValue] = useState(defaultValue)
+  const selectedItem = items.find(item => item.value === selectedValue) ?? null
   useEffect(() => {
-    let defaultSelect = null
-    const existed = items.find((item: Item) => item.value === defaultValue)
-    if (existed) { defaultSelect = existed }
-
-    setSelectedItem(defaultSelect)
+    setSelectedValue(defaultValue)
   }, [defaultValue])
 
   return (
@@ -153,7 +147,7 @@ const SimpleSelect: FC<ISelectProps> = ({
       value={selectedItem}
       onChange={(value: Item) => {
         if (!disabled) {
-          setSelectedItem(value)
+          setSelectedValue(value.value)
           onSelect(value)
         }
       }}
