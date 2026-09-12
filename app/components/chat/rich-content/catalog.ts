@@ -130,6 +130,7 @@ export function extractRichCards(content: string) {
     .trim()
 
   const cards = [...new Set(requestedIds)]
+    .filter(id => Object.hasOwn(richCardCatalog, id))
     .map(id => richCardCatalog[id])
     .filter((card): card is RichCardDefinition => !!card)
 
