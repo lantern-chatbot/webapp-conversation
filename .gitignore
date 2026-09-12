@@ -7,6 +7,8 @@
 
 # testing
 /coverage
+/playwright-report/
+/test-results/
 
 # next.js
 /.next/
@@ -49,5 +51,3 @@ yarn.lock
 
 # mcp
 .serena
-# pmpm
-pnpm-lock.yaml

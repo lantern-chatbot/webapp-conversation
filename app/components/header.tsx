@@ -91,7 +91,7 @@ const Header: FC<IHeaderProps> = ({
           <div style={{ flex: 1 }}>
             <div
               style={{
-                fontFamily: "'Zen Kaku Gothic New', sans-serif",
+                fontFamily: '\'Zen Kaku Gothic New\', sans-serif',
                 fontWeight: 700,
                 fontSize: '15px',
                 color: '#fff',
@@ -167,13 +167,13 @@ const Header: FC<IHeaderProps> = ({
               lineHeight: '1.4',
               transition: 'background 0.15s, box-shadow 0.15s',
             }}
-            onMouseEnter={e => {
+            onMouseEnter={(e) => {
               (e.currentTarget as HTMLElement).style.background = '#FFF8EE';
-              (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 8px rgba(180,120,40,0.12)';
+              (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 8px rgba(180,120,40,0.12)'
             }}
-            onMouseLeave={e => {
+            onMouseLeave={(e) => {
               (e.currentTarget as HTMLElement).style.background = '#fff';
-              (e.currentTarget as HTMLElement).style.boxShadow = '0 1px 4px rgba(180,120,40,0.06)';
+              (e.currentTarget as HTMLElement).style.boxShadow = '0 1px 4px rgba(180,120,40,0.06)'
             }}
           >
             {action.icon}

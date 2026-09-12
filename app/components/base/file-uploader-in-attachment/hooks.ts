@@ -3,7 +3,6 @@ import {
   useCallback,
   useState,
 } from 'react'
-import { useParams } from 'next/navigation'
 import produce from 'immer'
 import { v4 as uuid4 } from 'uuid'
 import { useTranslation } from 'react-i18next'
@@ -27,10 +26,6 @@ import { useToastContext } from '@/app/components/base/toast'
 import { TransferMethod } from '@/types/app'
 import { formatFileSize } from '@/utils/format'
 
-const uploadRemoteFileInfo = () => {
-  console.log('TODO')
-}
-
 export const useFileSizeLimit = (fileUploadConfig?: FileUploadConfigResponse) => {
   const imgSizeLimit = Number(fileUploadConfig?.image_file_size_limit) * 1024 * 1024 || IMG_SIZE_LIMIT
   const docSizeLimit = Number(fileUploadConfig?.file_size_limit) * 1024 * 1024 || FILE_SIZE_LIMIT
@@ -51,7 +46,6 @@ export const useFile = (fileConfig: FileUpload) => {
   const { t } = useTranslation()
   const { notify } = useToastContext()
   const fileStore = useFileStore()
-  const params = useParams()
   const { imgSizeLimit, docSizeLimit, audioSizeLimit, videoSizeLimit } = useFileSizeLimit(fileConfig.fileUploadConfig)
 
   const checkSizeLimit = useCallback((fileType: string, fileSize: number) => {
@@ -192,53 +186,11 @@ export const useFile = (fileConfig: FileUpload) => {
     }
   }, [fileStore, notify, t, handleUpdateFile])
 
-  const startProgressTimer = useCallback((fileId: string) => {
-    const timer = setInterval(() => {
-      const files = fileStore.getState().files
-      const file = files.find(file => file.id === fileId)
-
-      if (file && file.progress < 80 && file.progress >= 0) { handleUpdateFile({ ...file, progress: file.progress + 20 }) }
-      else { clearTimeout(timer) }
-    }, 200)
-  }, [fileStore, handleUpdateFile])
-  const handleLoadFileFromLink = useCallback((url: string) => {
-    const allowedFileTypes = fileConfig.allowed_file_types
-
-    const uploadingFile = {
-      id: uuid4(),
-      name: url,
-      type: '',
-      size: 0,
-      progress: 0,
-      transferMethod: TransferMethod.remote_url,
-      supportFileType: '',
-      url,
-      isRemote: true,
-    }
-    handleAddFile(uploadingFile)
-    startProgressTimer(uploadingFile.id)
-
-    uploadRemoteFileInfo(url, !!params.token).then((res) => {
-      const newFile = {
-        ...uploadingFile,
-        type: res.mime_type,
-        size: res.size,
-        progress: 100,
-        supportFileType: getSupportFileType(res.name, res.mime_type, allowedFileTypes?.includes(SupportUploadFileTypes.custom)),
-        uploadedId: res.id,
-        url: res.url,
-      }
-      if (!isAllowedFileExtension(res.name, res.mime_type, fileConfig.allowed_file_types || [], fileConfig.allowed_file_extensions || [])) {
-        notify({ type: 'error', message: t('common.fileUploader.fileExtensionNotSupport') })
-        handleRemoveFile(uploadingFile.id)
-      }
-      if (!checkSizeLimit(newFile.supportFileType, newFile.size)) { handleRemoveFile(uploadingFile.id) }
-      else { handleUpdateFile(newFile) }
-    }).catch(() => {
-      notify({ type: 'error', message: t('common.fileUploader.pasteFileLinkInvalid') })
-      handleRemoveFile(uploadingFile.id)
-    })
-  }, [checkSizeLimit, handleAddFile, handleUpdateFile, notify, t, handleRemoveFile, fileConfig?.allowed_file_types, fileConfig.allowed_file_extensions, startProgressTimer, params.token])
+  // This template has no endpoint for fetching remote file metadata.
+  // Reject the unsupported operation instead of leaving an upload pending.
+  const handleLoadFileFromLink = useCallback((_url: string) => {
+    notify({ type: 'error', message: t('common.fileUploader.pasteFileLinkInvalid') })
+  }, [notify, t])
 
   const handleLoadFileFromLinkSuccess = useCallback(noop, [])
 
@@ -302,7 +254,7 @@ export const useFile = (fileConfig: FileUpload) => {
       false,
     )
     reader.readAsDataURL(file)
-  }, [checkSizeLimit, notify, t, handleAddFile, handleUpdateFile, params.token, fileConfig?.allowed_file_types, fileConfig?.allowed_file_extensions])
+  }, [checkSizeLimit, notify, t, handleAddFile, handleUpdateFile, fileConfig?.allowed_file_types, fileConfig?.allowed_file_extensions])
 
   const handleClipboardPasteFile = useCallback((e: ClipboardEvent<HTMLTextAreaElement>) => {
     const file = e.clipboardData?.files[0]

@@ -3,17 +3,19 @@ import { createPortal } from 'react-dom'
 import XClose from '@/app/components/base/icons/line/x-close'
 
 interface ImagePreviewProps {
+  title?: string
   url: string
   onCancel: () => void
 }
 const ImagePreview: FC<ImagePreviewProps> = ({
+  title = 'preview image',
   url,
   onCancel,
 }) => {
   return createPortal(
     <div className='fixed inset-0 p-8 flex items-center justify-center bg-black/80 z-[1000]' onClick={e => e.stopPropagation()}>
       <img
-        alt='preview image'
+        alt={title}
         src={url}
         className='max-w-full max-h-full'
       />

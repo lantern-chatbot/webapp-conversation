@@ -58,12 +58,54 @@ Difyの回答に次の制御トークンが含まれると、フロントエン�
 
 ## 開発
 
+Node.js 24.x / pnpm 12.3.4を使用します。pnpmのバージョンは`package.json`の`packageManager`で固定しています。
+
 ```bash
 pnpm install
 pnpm dev
 ```
 
 [http://localhost:3000](http://localhost:3000) で確認できます。
+
+## PRの自動検証
+
+GitHub Actionsの`PR validation`をPR作成・更新時、`main`へのpush時、手動実行時に実行します。
+
+| チェック名 | 内容 |
+| --- | --- |
+| `Lint, types and unit tests` | ESLint、TypeScript、カード制御トークンの単体テスト |
+| `Build and browser tests` | 本番ビルドとPlaywrightによるPC・スマートフォン幅のチャット操作テスト |
+
+ローカルでも同じ検証を実行できます。
+
+```bash
+pnpm install --frozen-lockfile
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm exec playwright install chromium
+pnpm test:e2e
+```
+
+ブラウザテストは`127.0.0.1:4318`にNext.js、`127.0.0.1:4319`に疑似Difyを起動し、終了時に停止します。両ポートを空けて実行してください。`pnpm test:e2e`自身がビルドも行うため、事前の`pnpm build`は不要です。Vercelと同じ出力設定でビルドし、Docker用のstandalone出力は生成しません。
+
+テスト用のAPP ID・API URL・APIキーはPlaywrightがローカルの値へ固定します。実際のDify APIキー、GitHub Secrets、LLM呼び出しは不要です。ブラウザから外部サイトへの通信も遮断します。
+
+検証対象は質問送信、回答の逐次表示、途中の制御トークン非表示、カードのリンク、会話IDの引き継ぎ、APIエラー表示と再送信、空の質問の送信防止です。ブラウザ→Next.jsのAPI→疑似Difyまでを通します。実Difyの回答品質やVercel Preview上の環境変数・接続はこのテストの対象外です。
+
+失敗時のスクリーンショット・traceとHTMLレポートをActionsの`playwright-report`成果物に7日間保存します。ローカルでは`pnpm exec playwright show-report`で確認できます。
+
+### マージ前の必須チェック
+
+ワークフローの追加だけではマージを禁止できないため、管理者がGitHubのSettings → Rules → Rulesets（またはBranchesの保護ルール）で`main`に次を設定します。
+
+1. PR経由の変更を必須にする
+2. `Require status checks to pass`を有効にし、上表の2つのチェック名を追加する（初回実行後に選択可能）
+3. マージ前にブランチを最新の`main`へ更新することを必須にする
+
+既存のESLint warningは表示を継続し、errorでCIを失敗させます。型エラーとLintエラーを無視するビルド設定は使用しません。
+
+Dify側だけの変更ではフロントのPRイベントは発生しません。実Difyでの回答評価は、テスト用Difyアプリと評価ケースを準備したうえで、Dify変更時・定期実行の別ワークフローとして追加してください。
 
 ## デプロイ（Vercel）
 
