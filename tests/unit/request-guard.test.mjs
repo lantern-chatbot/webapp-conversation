@@ -27,6 +27,14 @@ describe('API request origin guard', () => {
     assert.equal(isCrossOriginRequest(requestWith({ origin: 'null' })), true)
   })
 
+  it('compares Origin with the public host behind a reverse proxy', () => {
+    const internal = headers => new Request('http://localhost:3000/api/chat-messages', { method: 'POST', headers })
+    assert.equal(isCrossOriginRequest(internal({ 'origin': 'https://chat.example.com', 'x-forwarded-host': 'chat.example.com' })), false)
+    assert.equal(isCrossOriginRequest(internal({ origin: 'https://chat.example.com', host: 'chat.example.com' })), false)
+    assert.equal(isCrossOriginRequest(internal({ 'origin': 'https://evil.example', 'x-forwarded-host': 'chat.example.com' })), true)
+    assert.equal(isCrossOriginRequest(internal({ origin: 'https://chat.example.com' })), true)
+  })
+
   it('does not reject requests without browser origin headers', () => {
     assert.equal(isCrossOriginRequest(requestWith({})), false)
   })
