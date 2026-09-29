@@ -6,13 +6,11 @@ import TemplateVarPanel, { PanelTitle, VarOpBtnGroup } from '../value-panel'
 import FileUploaderInAttachmentWrapper from '../base/file-uploader-in-attachment'
 import s from './style.module.css'
 import { AppInfoComp, ChatBtn, EditBtn, PromptTemplate } from './massive-component'
+import { buildPromptTemplateHtml } from './prompt-template-html'
 import type { AppInfo, PromptConfig } from '@/types/app'
 import Toast from '@/app/components/base/toast'
 import Select from '@/app/components/base/select'
 import { DEFAULT_VALUE_MAX_LEN } from '@/config'
-
-// regex to match the {{}} and replace it with a span
-const regex = /\{\{([^}]+)\}\}/g
 
 export interface IWelcomeProps {
   conversationName: string
@@ -65,13 +63,10 @@ const Welcome: FC<IWelcomeProps> = ({
     }
   }, [savedInputs, promptConfig])
 
-  const highLightPromoptTemplate = (() => {
-    if (!promptConfig) { return '' }
-    const res = promptConfig.prompt_template.replace(regex, (match, p1) => {
-      return `<span class='text-gray-800 font-bold'>${inputs?.[p1] ? inputs?.[p1] : match}</span>`
-    })
-    return res
-  })()
+  // Escapes both the template body and the user's inputs before highlighting.
+  const highLightPromoptTemplate = promptConfig
+    ? buildPromptTemplateHtml(promptConfig.prompt_template, inputs)
+    : ''
 
   const { notify } = Toast
   const logError = (message: string) => {
