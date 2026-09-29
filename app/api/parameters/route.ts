@@ -1,6 +1,7 @@
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import { getDifyClient, getInfo, setSession } from '@/app/api/utils/common'
+import { discardDifyErrorBody } from '@/app/api/utils/dify-error'
 import { rejectCrossOriginRequest } from '@/app/api/utils/request-guard'
 
 export async function GET(request: NextRequest) {
@@ -15,7 +16,10 @@ export async function GET(request: NextRequest) {
       headers: setSession(sessionId),
     })
   }
-  catch {
+  catch (error) {
+    // The chat page treats an empty value as "no app settings" and still opens
+    // the chat with defaults, so keep this fallback. It carries no error detail.
+    discardDifyErrorBody(error)
     return NextResponse.json([])
   }
 }
