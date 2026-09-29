@@ -23,6 +23,7 @@ const translation = {
     valueOfVarRequired: '变量值必填',
     waitForResponse: '请等待上条信息响应完成',
     waitForFileUpload: '请等待所有文件上传完成后再发送',
+    queryTooLong: '问题请控制在{{max}}个字符以内',
   },
   variableTable: {
     optional: '可选',

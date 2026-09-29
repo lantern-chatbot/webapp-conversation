@@ -49,7 +49,7 @@ test.describe('rejects request bodies outside the allowlist', () => {
     { name: 'blank question', path: '/api/chat-messages', data: { inputs: {}, query: '   ' } },
     { name: 'overlong question', path: '/api/chat-messages', data: { inputs: {}, query: 'a'.repeat(4001) } },
     { name: 'nested inputs', path: '/api/chat-messages', data: { inputs: { a: { b: 1 } }, query: 'q' } },
-    { name: 'remote file', path: '/api/chat-messages', data: { query: 'q', files: [{ type: 'image', transfer_method: 'remote_url', upload_file_id: 'ci-file-1', url: 'https://example.com/a.png' }] } },
+    { name: 'non-http file URL', path: '/api/chat-messages', data: { query: 'q', files: [{ type: 'image', transfer_method: 'remote_url', upload_file_id: 'ci-file-1', url: 'file:///etc/hosts' }] } },
     { name: 'non-JSON body', path: '/api/chat-messages', data: 'not json' },
     { name: 'rename without instruction', path: '/api/conversations/ci-conversation/name', data: {} },
     { name: 'unknown rating', path: '/api/messages/ci-message-1/feedbacks', data: { rating: 'love' } },

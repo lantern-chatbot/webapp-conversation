@@ -69,16 +69,44 @@ describe('chat message body', () => {
     }
   })
 
+  it('accepts file and file-list prompt variables from the welcome form', () => {
+    const parsed = parseChatMessageBody({
+      query: 'q',
+      inputs: {
+        contract: { type: 'document', transfer_method: 'local_file', upload_file_id: UUID, url: '' },
+        photos: [{ type: 'image', transfer_method: 'remote_url', url: 'https://example.com/a.png', upload_file_id: '' }],
+      },
+    })
+    assert.deepEqual(parsed?.inputs, {
+      contract: { type: 'document', transfer_method: 'local_file', upload_file_id: UUID },
+      photos: [{ type: 'image', transfer_method: 'remote_url', url: 'https://example.com/a.png' }],
+    })
+  })
+
   it('rejects nested inputs, invalid keys and oversized inputs', () => {
     for (const inputs of [{ nested: { a: 1 } }, { list: [1] }, { 'bad-key': 'x' }, { '1st': 'x' }, { big: 'a'.repeat(2001) }, { n: Number.NaN }, 'text', [1]]) {
       assert.equal(parseChatMessageBody({ query: 'q', inputs }), undefined, JSON.stringify(inputs))
     }
   })
 
-  it('rejects files that are not uploaded images', () => {
+  it('accepts every file type the uploader offers, by uploaded ID or http(s) URL', () => {
+    const files = [
+      { type: 'document', transfer_method: 'local_file', upload_file_id: UUID },
+      { type: 'audio', transfer_method: 'local_file', upload_file_id: UUID },
+      { type: 'video', transfer_method: 'local_file', upload_file_id: UUID },
+      { type: 'custom', transfer_method: 'local_file', upload_file_id: UUID },
+      { type: 'image', transfer_method: 'remote_url', url: 'http://example.com/a.png' },
+    ]
+    assert.deepEqual(parseChatMessageBody({ query: 'q', files })?.files, files)
+  })
+
+  it('rejects malformed file references', () => {
     for (const files of [
-      [{ type: 'image', transfer_method: 'remote_url', upload_file_id: UUID, url: 'https://example.com/a.png' }],
-      [{ type: 'document', transfer_method: 'local_file', upload_file_id: UUID }],
+      [{ type: 'image', transfer_method: 'remote_url', upload_file_id: UUID, url: 'ftp://example.com/a.png' }],
+      [{ type: 'image', transfer_method: 'remote_url', url: 'file:///etc/hosts' }],
+      [{ type: 'image', transfer_method: 'remote_url', url: `https://example.com/${'a'.repeat(2048)}` }],
+      [{ type: 'script', transfer_method: 'local_file', upload_file_id: UUID }],
+      [{ type: 'image', transfer_method: 'upload', upload_file_id: UUID }],
       [{ type: 'image', transfer_method: 'local_file', upload_file_id: '../x' }],
       'file',
       Array.from({ length: 11 }, () => ({ type: 'image', transfer_method: 'local_file', upload_file_id: UUID })),

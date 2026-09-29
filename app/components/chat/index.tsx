@@ -18,6 +18,7 @@ import { useImageFiles } from '@/app/components/base/image-uploader/hooks'
 import FileUploaderInAttachmentWrapper from '@/app/components/base/file-uploader-in-attachment'
 import type { FileEntity, FileUpload } from '@/app/components/base/file-uploader-in-attachment/types'
 import { getProcessedFiles } from '@/app/components/base/file-uploader-in-attachment/utils'
+import { MAX_QUERY_LENGTH } from '@/app/api/utils/request-validation'
 
 export interface IChatProps {
   chatList: ChatItem[]
@@ -73,6 +74,11 @@ const Chat: FC<IChatProps> = ({
     const query = queryRef.current
     if (!query || query.trim() === '') {
       logError(t('app.errorMessage.valueOfVarRequired'))
+      return false
+    }
+    // Same limit as the API; checked here so the draft is kept.
+    if (query.length > MAX_QUERY_LENGTH) {
+      logError(t('app.errorMessage.queryTooLong', { max: MAX_QUERY_LENGTH.toLocaleString() }))
       return false
     }
     return true

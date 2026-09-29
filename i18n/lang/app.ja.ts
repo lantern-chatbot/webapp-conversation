@@ -29,6 +29,7 @@ const translation = {
       '前のメッセージの応答が完了するまでお待ちください。',
     waitForFileUpload:
       'すべてのファイルのアップロードが完了してから送信してください。',
+    queryTooLong: '質問は{{max}}文字以内で入力してください。',
   },
   variableTable: {
     optional: '任意',
