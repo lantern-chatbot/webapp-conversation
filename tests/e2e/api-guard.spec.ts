@@ -43,3 +43,23 @@ test.describe('rejects IDs that would change the Dify API path', () => {
     })
   }
 })
+
+test.describe('rejects request bodies outside the allowlist', () => {
+  const invalid = [
+    { name: 'blank question', path: '/api/chat-messages', data: { inputs: {}, query: '   ' } },
+    { name: 'overlong question', path: '/api/chat-messages', data: { inputs: {}, query: 'a'.repeat(4001) } },
+    { name: 'nested inputs', path: '/api/chat-messages', data: { inputs: { a: { b: 1 } }, query: 'q' } },
+    { name: 'remote file', path: '/api/chat-messages', data: { query: 'q', files: [{ type: 'image', transfer_method: 'remote_url', upload_file_id: 'ci-file-1', url: 'https://example.com/a.png' }] } },
+    { name: 'non-JSON body', path: '/api/chat-messages', data: 'not json' },
+    { name: 'rename without instruction', path: '/api/conversations/ci-conversation/name', data: {} },
+    { name: 'unknown rating', path: '/api/messages/ci-message-1/feedbacks', data: { rating: 'love' } },
+  ]
+
+  for (const body of invalid) {
+    test(body.name, async ({ request, baseURL }) => {
+      const headers = { 'Origin': new URL(baseURL!).origin, 'Sec-Fetch-Site': 'same-origin', 'Content-Type': 'application/json' }
+      const response = await request.post(body.path, { headers, data: body.data })
+      expect(response.status()).toBe(400)
+    })
+  }
+})

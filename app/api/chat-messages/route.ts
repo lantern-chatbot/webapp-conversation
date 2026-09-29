@@ -3,24 +3,20 @@ import { NextResponse } from 'next/server'
 import { isAxiosError } from 'axios'
 import { getDifyClient, getInfo } from '@/app/api/utils/common'
 import { rejectCrossOriginRequest } from '@/app/api/utils/request-guard'
+import { badRequestResponse, parseChatMessageBody } from '@/app/api/utils/request-validation'
 
 export async function POST(request: NextRequest) {
   const rejected = rejectCrossOriginRequest(request)
   if (rejected) { return rejected }
 
-  const body = await request.json()
-  const {
-    inputs,
-    query,
-    files,
-    conversation_id: conversationId,
-    response_mode: responseMode,
-  } = body
+  const body = parseChatMessageBody(await request.json().catch(() => undefined))
+  if (!body) { return badRequestResponse() }
   const { user } = getInfo(request)
   const client = getDifyClient()
   try {
-    const res = await client.createChatMessage(inputs, query, user, responseMode === 'streaming', conversationId, files)
-    if (responseMode !== 'streaming') { return NextResponse.json(res.data) }
+    // The UI always streams; do not let callers switch to blocking mode.
+    // dify-client types `files` as DOM File objects; its implementation sends them as JSON.
+    const res = await client.createChatMessage(body.inputs, body.query, user, true, body.conversationId, body.files as unknown as File[] | undefined)
     return new Response(res.data, {
       headers: { 'Content-Type': 'text/event-stream' },
     })
