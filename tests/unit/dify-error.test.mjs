@@ -73,7 +73,10 @@ describe('Dify error responses', () => {
     const httpError = status => new AxiosError('failed', 'ERR_BAD_RESPONSE', undefined, undefined, { status, data: {} })
     assert.equal(difyErrorStatus(httpError(400)), 400)
     assert.equal(difyErrorStatus(httpError(413)), 413)
+    assert.equal(difyErrorStatus(httpError(403)), 403)
     assert.equal(difyErrorStatus(httpError(503)), 503)
+    // A rejected server API key is an upstream failure, not the browser's.
+    assert.equal(difyErrorStatus(httpError(401)), 502)
     // Out-of-range statuses are not trusted.
     assert.equal(difyErrorStatus(httpError(200)), 502)
     assert.equal(difyErrorStatus(httpError(302)), 502)

@@ -19,6 +19,9 @@ const asErrorLike = (error: unknown): DifyErrorLike | undefined =>
 export const difyErrorStatus = (error: unknown): number => {
   const errorLike = asErrorLike(error)
   const status = errorLike?.response?.status
+  // A Dify 401 means this server's API key was rejected, not the browser's
+  // session. The page's fetch wrapper never settles on 401, so do not forward it.
+  if (status === 401) { return UPSTREAM_FAILURE_STATUS }
   if (typeof status === 'number' && Number.isInteger(status) && status >= 400 && status <= 599) { return status }
   // No upstream response (connection refused, timeout, DNS) means the gateway failed.
   return errorLike?.isAxiosError === true ? UPSTREAM_FAILURE_STATUS : INTERNAL_FAILURE_STATUS
