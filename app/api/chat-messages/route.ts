@@ -1,7 +1,6 @@
 import type { NextRequest } from 'next/server'
-import { NextResponse } from 'next/server'
-import { isAxiosError } from 'axios'
 import { getDifyClient, getInfo } from '@/app/api/utils/common'
+import { difyErrorResponse } from '@/app/api/utils/dify-error'
 import { rejectCrossOriginRequest } from '@/app/api/utils/request-guard'
 import { badRequestResponse, parseChatMessageBody } from '@/app/api/utils/request-validation'
 
@@ -22,13 +21,6 @@ export async function POST(request: NextRequest) {
     })
   }
   catch (error) {
-    // The SDK returns a stream even for error responses. Do not forward an
-    // Axios error (which includes credentials) or a non-JSON Next.js error page.
-    if (isAxiosError(error)) {
-      const status = error.response?.status || 502
-      error.response?.data?.destroy?.()
-      return NextResponse.json({ message: '回答の取得に失敗しました。もう一度お試しください。' }, { status })
-    }
-    throw error
+    return difyErrorResponse(error, '回答の取得に失敗しました。もう一度お試しください。')
   }
 }

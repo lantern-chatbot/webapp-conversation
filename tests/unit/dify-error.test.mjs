@@ -3,7 +3,7 @@ import { once } from 'node:events'
 import { createServer } from 'node:http'
 import { describe, it } from 'node:test'
 import axios, { AxiosError } from 'axios'
-import { difyErrorResponse, difyErrorStatus, discardDifyErrorBody, invalidRequestResponse } from '../../app/api/utils/dify-error.ts'
+import { difyErrorResponse, difyErrorStatus, discardDifyErrorBody } from '../../app/api/utils/dify-error.ts'
 
 const SECRET_KEY = 'app-secret-dify-key'
 const MESSAGE = '会話履歴の取得に失敗しました。ページを再読み込みしてください。'
@@ -98,11 +98,5 @@ describe('Dify error responses', () => {
     assert.doesNotThrow(() => discardDifyErrorBody({ response: { data: null } }))
     assert.doesNotThrow(() => discardDifyErrorBody({ response: { data: { destroy: 'no' } } }))
     assert.doesNotThrow(() => discardDifyErrorBody(null))
-  })
-
-  it('responds to a malformed request with 400', async () => {
-    const response = invalidRequestResponse()
-    assert.equal(response.status, 400)
-    assert.deepEqual(await response.json(), { message: 'リクエストの形式が正しくありません。' })
   })
 })
