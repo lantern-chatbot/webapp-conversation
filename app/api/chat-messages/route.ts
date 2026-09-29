@@ -2,8 +2,12 @@ import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import { isAxiosError } from 'axios'
 import { getDifyClient, getInfo } from '@/app/api/utils/common'
+import { rejectCrossOriginRequest } from '@/app/api/utils/request-guard'
 
 export async function POST(request: NextRequest) {
+  const rejected = rejectCrossOriginRequest(request)
+  if (rejected) { return rejected }
+
   const body = await request.json()
   const {
     inputs,

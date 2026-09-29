@@ -1,10 +1,14 @@
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import { getDifyClient, getInfo } from '@/app/api/utils/common'
+import { rejectCrossOriginRequest } from '@/app/api/utils/request-guard'
 
 export async function POST(request: NextRequest, { params }: {
   params: Promise<{ conversationId: string }>
 }) {
+  const rejected = rejectCrossOriginRequest(request)
+  if (rejected) { return rejected }
+
   const body = await request.json()
   const {
     auto_generate,
