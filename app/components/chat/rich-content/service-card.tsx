@@ -1,13 +1,20 @@
 'use client'
 
 import type { RichCardDefinition } from './catalog'
+import { resolveParentOrigin } from './parent-origin'
 
 function notifyCardClick(card: RichCardDefinition) {
   const detail = { cardId: card.id, href: card.href }
   window.dispatchEvent(new CustomEvent('lantern-chatbot:card-click', { detail }))
 
-  if (window.parent !== window) {
-    window.parent.postMessage({ source: 'lantern-chatbot', type: 'card-click', ...detail }, '*')
+  // Deliver only to the embedding page; skip when its origin is unknown.
+  const targetOrigin = resolveParentOrigin({
+    isFramed: window.parent !== window,
+    ancestorOrigins: window.location.ancestorOrigins,
+    referrer: document.referrer,
+  })
+  if (targetOrigin) {
+    window.parent.postMessage({ source: 'lantern-chatbot', type: 'card-click', ...detail }, targetOrigin)
   }
 }
 
