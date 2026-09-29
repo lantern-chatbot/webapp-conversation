@@ -69,24 +69,22 @@ describe('chat message body', () => {
     }
   })
 
-  it('accepts file and file-list prompt variables from the welcome form', () => {
-    const parsed = parseChatMessageBody({
-      query: 'q',
-      inputs: {
-        contract: { type: 'document', transfer_method: 'local_file', upload_file_id: UUID, url: '' },
-        photos: [{ type: 'image', transfer_method: 'remote_url', url: 'https://example.com/a.png', upload_file_id: '' }],
-      },
-    })
-    assert.deepEqual(parsed?.inputs, {
-      contract: { type: 'document', transfer_method: 'local_file', upload_file_id: UUID },
+  it('forwards prompt variable values as sent, including file objects restored from Dify', () => {
+    const inputs = {
+      contract: { type: 'document', transfer_method: 'local_file', upload_file_id: UUID, url: '' },
       photos: [{ type: 'image', transfer_method: 'remote_url', url: 'https://example.com/a.png' }],
-    })
+      restored: { type: 'document', transfer_method: 'local_file', related_id: UUID, filename: 'a.pdf' },
+      paragraph: 'a'.repeat(5000),
+    }
+    assert.deepEqual(parseChatMessageBody({ query: 'q', inputs })?.inputs, inputs)
   })
 
-  it('rejects nested inputs, invalid keys and oversized inputs', () => {
-    for (const inputs of [{ nested: { a: 1 } }, { list: [1] }, { 'bad-key': 'x' }, { '1st': 'x' }, { big: 'a'.repeat(2001) }, { n: Number.NaN }, 'text', [1]]) {
-      assert.equal(parseChatMessageBody({ query: 'q', inputs }), undefined, JSON.stringify(inputs))
+  it('bounds prompt variables by key format, count and total size', () => {
+    const tooMany = Object.fromEntries(Array.from({ length: 21 }, (_, i) => [`v${i}`, 'x']))
+    for (const inputs of [{ 'bad-key': 'x' }, { '1st': 'x' }, tooMany, { big: 'a'.repeat(32000) }, 'text', [1]]) {
+      assert.equal(parseChatMessageBody({ query: 'q', inputs }), undefined, JSON.stringify(inputs).slice(0, 40))
     }
+    assert.ok(parseChatMessageBody({ query: 'q', inputs: Object.fromEntries(Array.from({ length: 20 }, (_, i) => [`v${i}`, 'x'])) }))
   })
 
   it('accepts every file type the uploader offers, by uploaded ID or http(s) URL', () => {

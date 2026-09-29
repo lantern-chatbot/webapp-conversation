@@ -6,7 +6,9 @@ const INPUT_KEY_PATTERN = /^[A-Z_a-z]\w{0,63}$/
 
 export const MAX_QUERY_LENGTH = 4000
 const MAX_INPUTS = 20
-const MAX_INPUT_LENGTH = 2000
+// Dify checks each value against the app's variable settings (max length, file
+// types). Here only the overall size is bounded, since it is sent to the model.
+const MAX_INPUTS_JSON_LENGTH = 32000
 const MAX_FILES = 10
 const MAX_NAME_LENGTH = 100
 const MAX_URL_LENGTH = 2048
@@ -18,11 +20,10 @@ const FILE_TYPES = new Set(['image', 'document', 'audio', 'video', 'custom'])
 type FileReference
   = | { type: string, transfer_method: 'local_file', upload_file_id: string }
     | { type: string, transfer_method: 'remote_url', url: string }
-type InputValue = string | number | boolean | FileReference | FileReference[]
 
 export interface ChatMessageBody {
   query: string
-  inputs: Record<string, InputValue>
+  inputs: Record<string, unknown>
   conversationId?: string
   files?: FileReference[]
 }
@@ -59,27 +60,13 @@ const parseFileList = (value: unknown) => {
   return files.every(file => file !== undefined) ? files as FileReference[] : undefined
 }
 
-const parseInputValue = (value: unknown): InputValue | undefined => {
-  if (typeof value === 'string') { return value.length <= MAX_INPUT_LENGTH ? value : undefined }
-  if (typeof value === 'boolean') { return value }
-  if (typeof value === 'number') { return Number.isFinite(value) ? value : undefined }
-  // File and file-list prompt variables from the welcome form.
-  return Array.isArray(value) ? parseFileList(value) : parseFile(value)
-}
-
 const parseInputs = (value: unknown) => {
   if (value === undefined || value === null) { return {} }
   if (!isPlainObject(value)) { return undefined }
-  const entries = Object.entries(value)
-  if (entries.length > MAX_INPUTS) { return undefined }
-  const inputs: Record<string, InputValue> = {}
-  for (const [key, item] of entries) {
-    if (!INPUT_KEY_PATTERN.test(key)) { return undefined }
-    const parsed = parseInputValue(item)
-    if (parsed === undefined) { return undefined }
-    inputs[key] = parsed
-  }
-  return inputs
+  const keys = Object.keys(value)
+  if (keys.length > MAX_INPUTS || !keys.every(key => INPUT_KEY_PATTERN.test(key))) { return undefined }
+  // Values are forwarded as sent, including file objects restored from Dify.
+  return JSON.stringify(value).length <= MAX_INPUTS_JSON_LENGTH ? value : undefined
 }
 
 const parseFiles = (value: unknown) => {

@@ -48,7 +48,7 @@ test.describe('rejects request bodies outside the allowlist', () => {
   const invalid = [
     { name: 'blank question', path: '/api/chat-messages', data: { inputs: {}, query: '   ' } },
     { name: 'overlong question', path: '/api/chat-messages', data: { inputs: {}, query: 'a'.repeat(4001) } },
-    { name: 'nested inputs', path: '/api/chat-messages', data: { inputs: { a: { b: 1 } }, query: 'q' } },
+    { name: 'oversized inputs', path: '/api/chat-messages', data: { inputs: { a: 'x'.repeat(32000) }, query: 'q' } },
     { name: 'non-http file URL', path: '/api/chat-messages', data: { query: 'q', files: [{ type: 'image', transfer_method: 'remote_url', upload_file_id: 'ci-file-1', url: 'file:///etc/hosts' }] } },
     { name: 'non-JSON body', path: '/api/chat-messages', data: 'not json' },
     { name: 'rename without instruction', path: '/api/conversations/ci-conversation/name', data: {} },
