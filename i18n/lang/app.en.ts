@@ -29,6 +29,7 @@ const translation = {
       'Please wait for the response to the previous message to complete.',
     waitForFileUpload:
       'Please wait for all files to finish uploading before sending.',
+    queryTooLong: 'Please keep your question within {{max}} characters.',
   },
   variableTable: {
     optional: 'Optional',

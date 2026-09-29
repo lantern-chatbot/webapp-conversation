@@ -61,3 +61,17 @@ test('does not send blank questions', async ({ page }) => {
   await expect(page.getByText('お気軽にご相談ください。', { exact: true })).toBeVisible()
   expect(chatRequests).toBe(0)
 })
+
+test('keeps an overlong question and explains the limit instead of sending it', async ({ page }) => {
+  let chatRequests = 0
+  page.on('request', (request) => {
+    if (new URL(request.url()).pathname === '/api/chat-messages') { chatRequests++ }
+  })
+  const input = page.getByRole('textbox')
+  const question = 'あ'.repeat(4001)
+  await input.fill(question)
+  await input.press('Enter')
+  await expect(page.getByText('質問は4,000文字以内で入力してください。', { exact: true })).toBeVisible()
+  await expect(input).toHaveValue(question)
+  expect(chatRequests).toBe(0)
+})

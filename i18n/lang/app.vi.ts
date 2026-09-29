@@ -29,6 +29,7 @@ const translation = {
       'Vui lòng đợi phản hồi từ tin nhắn trước khi gửi tin nhắn mới.',
     waitForFileUpload:
       'Vui lòng đợi tất cả tệp tải lên xong trước khi gửi.',
+    queryTooLong: 'Vui lòng nhập câu hỏi không quá {{max}} ký tự.',
   },
   variableTable: {
     optional: 'Tùy chọn',

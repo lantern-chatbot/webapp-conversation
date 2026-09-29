@@ -2,7 +2,7 @@ import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import { getDifyClient, getInfo } from '@/app/api/utils/common'
 import { rejectCrossOriginRequest } from '@/app/api/utils/request-guard'
-import { invalidIdResponse, isValidId } from '@/app/api/utils/validate-id'
+import { badRequestResponse, isValidId, parseFeedbackBody } from '@/app/api/utils/request-validation'
 
 export async function POST(request: NextRequest, { params }: {
   params: Promise<{ messageId: string }>
@@ -10,14 +10,12 @@ export async function POST(request: NextRequest, { params }: {
   const rejected = rejectCrossOriginRequest(request)
   if (rejected) { return rejected }
 
-  const body = await request.json()
-  const {
-    rating,
-  } = body
   const { messageId } = await params
-  if (!isValidId(messageId)) { return invalidIdResponse() }
+  const body = parseFeedbackBody(await request.json().catch(() => undefined))
+  if (!isValidId(messageId) || !body) { return badRequestResponse() }
   const { user } = getInfo(request)
   const client = getDifyClient()
-  const { data } = await client.messageFeedback(messageId, rating, user)
+  // dify-client types rating as a number; the API takes 'like' | 'dislike' | null.
+  const { data } = await client.messageFeedback(messageId, body.rating as unknown as number, user)
   return NextResponse.json(data)
 }

@@ -2,7 +2,7 @@ import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import { getDifyClient, getInfo } from '@/app/api/utils/common'
 import { rejectCrossOriginRequest } from '@/app/api/utils/request-guard'
-import { invalidIdResponse, isValidId } from '@/app/api/utils/validate-id'
+import { badRequestResponse, isValidId, parseRenameBody } from '@/app/api/utils/request-validation'
 
 export async function POST(request: NextRequest, { params }: {
   params: Promise<{ conversationId: string }>
@@ -10,17 +10,13 @@ export async function POST(request: NextRequest, { params }: {
   const rejected = rejectCrossOriginRequest(request)
   if (rejected) { return rejected }
 
-  const body = await request.json()
-  const {
-    auto_generate,
-    name,
-  } = body
   const { conversationId } = await params
-  if (!isValidId(conversationId)) { return invalidIdResponse() }
+  const body = parseRenameBody(await request.json().catch(() => undefined))
+  if (!isValidId(conversationId) || !body) { return badRequestResponse() }
   const { user } = getInfo(request)
 
-  // auto generate name
   const client = getDifyClient()
-  const { data } = await client.renameConversation(conversationId, name, user, auto_generate)
+  // dify-client types require name, but index.js sends it as given and Dify ignores it when auto_generate is true.
+  const { data } = await client.renameConversation(conversationId, body.name as string, user, body.autoGenerate)
   return NextResponse.json(data)
 }
