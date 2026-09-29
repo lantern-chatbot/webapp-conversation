@@ -1,7 +1,8 @@
 import type { NextRequest } from 'next/server'
 import { getDifyClient, getInfo } from '@/app/api/utils/common'
-import { difyErrorResponse, invalidRequestResponse } from '@/app/api/utils/dify-error'
+import { difyErrorResponse } from '@/app/api/utils/dify-error'
 import { rejectCrossOriginRequest } from '@/app/api/utils/request-guard'
+import { badRequestResponse } from '@/app/api/utils/request-validation'
 
 export async function POST(request: NextRequest) {
   const rejected = rejectCrossOriginRequest(request)
@@ -12,7 +13,7 @@ export async function POST(request: NextRequest) {
     formData = await request.formData()
   }
   catch {
-    return invalidRequestResponse()
+    return badRequestResponse()
   }
 
   try {

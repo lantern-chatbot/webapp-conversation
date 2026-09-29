@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 import { getDifyClient, getInfo, setSession } from '@/app/api/utils/common'
 import { difyErrorResponse } from '@/app/api/utils/dify-error'
 import { rejectCrossOriginRequest } from '@/app/api/utils/request-guard'
-import { invalidIdResponse, isValidId } from '@/app/api/utils/validate-id'
+import { badRequestResponse, isValidId } from '@/app/api/utils/request-validation'
 
 export async function GET(request: NextRequest) {
   const rejected = rejectCrossOriginRequest(request)
@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
   const { sessionId, user } = getInfo(request)
   const { searchParams } = new URL(request.url)
   const conversationId = searchParams.get('conversation_id')
-  if (!isValidId(conversationId)) { return invalidIdResponse() }
+  if (!isValidId(conversationId)) { return badRequestResponse() }
   try {
     const client = getDifyClient()
     const { data }: any = await client.getConversationMessages(user, conversationId)

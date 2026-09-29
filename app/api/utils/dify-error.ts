@@ -38,6 +38,3 @@ export const difyErrorResponse = (error: unknown, message: string) => {
   discardDifyErrorBody(error)
   return Response.json({ message }, { status: difyErrorStatus(error) })
 }
-
-export const invalidRequestResponse = () =>
-  Response.json({ message: 'リクエストの形式が正しくありません。' }, { status: 400 })
