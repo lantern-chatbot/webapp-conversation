@@ -3,11 +3,12 @@ import { ChatClient } from 'dify-client'
 import { v4 } from 'uuid'
 import { API_URL, APP_ID, APP_INFO } from '@/config'
 import { DIFY_API_KEY } from '@/config/server'
+import { buildSessionCookie, SESSION_COOKIE_NAME } from './session-cookie'
 
 const userPrefix = `user_${APP_ID}:`
 
 export const getInfo = (request: NextRequest) => {
-  const sessionId = request.cookies.get('session_id')?.value || v4()
+  const sessionId = request.cookies.get(SESSION_COOKIE_NAME)?.value || v4()
   const user = userPrefix + sessionId
   return {
     sessionId,
@@ -15,12 +16,9 @@ export const getInfo = (request: NextRequest) => {
   }
 }
 
-export const setSession = (sessionId: string) => {
-  if (APP_INFO.disable_session_same_site)
-  { return { 'Set-Cookie': `session_id=${sessionId}; SameSite=None; Secure` } }
-
-  return { 'Set-Cookie': `session_id=${sessionId}` }
-}
+export const setSession = (sessionId: string) => ({
+  'Set-Cookie': buildSessionCookie(sessionId, Boolean(APP_INFO.disable_session_same_site)),
+})
 
 let client: ChatClient | undefined
 
