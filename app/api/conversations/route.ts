@@ -1,6 +1,7 @@
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import { getDifyClient, getInfo, setSession } from '@/app/api/utils/common'
+import { difyErrorResponse } from '@/app/api/utils/dify-error'
 import { rejectCrossOriginRequest } from '@/app/api/utils/request-guard'
 
 export async function GET(request: NextRequest) {
@@ -15,10 +16,7 @@ export async function GET(request: NextRequest) {
       headers: setSession(sessionId),
     })
   }
-  catch (error: any) {
-    return NextResponse.json({
-      data: [],
-      error: error.message,
-    })
+  catch (error) {
+    return difyErrorResponse(error, '会話履歴の取得に失敗しました。ページを再読み込みしてください。')
   }
 }
