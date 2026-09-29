@@ -26,3 +26,20 @@ test('accepts a same-origin API request', async ({ request, baseURL }) => {
   const response = await request.get('/api/parameters', { headers: { 'Origin': new URL(baseURL!).origin, 'Sec-Fetch-Site': 'same-origin' } })
   expect(response.status()).toBe(200)
 })
+
+test.describe('rejects IDs that would change the Dify API path', () => {
+  const invalid = [
+    { method: 'POST', path: '/api/messages/..%2F..%2Fevil/feedbacks', data: { rating: 'like' } },
+    { method: 'POST', path: '/api/conversations/..%2Fchat-messages/name', data: { auto_generate: true } },
+    { method: 'GET', path: '/api/messages?conversation_id=..%2Fevil' },
+    { method: 'GET', path: '/api/messages' },
+  ] as const
+
+  for (const route of invalid) {
+    test(`${route.method} ${route.path}`, async ({ request, baseURL }) => {
+      const headers = { 'Origin': new URL(baseURL!).origin, 'Sec-Fetch-Site': 'same-origin' }
+      const response = await request.fetch(route.path, { method: route.method, headers, ...('data' in route ? { data: route.data } : {}) })
+      expect(response.status()).toBe(400)
+    })
+  }
+})

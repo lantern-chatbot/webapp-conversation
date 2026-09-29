@@ -2,6 +2,7 @@ import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import { getDifyClient, getInfo } from '@/app/api/utils/common'
 import { rejectCrossOriginRequest } from '@/app/api/utils/request-guard'
+import { invalidIdResponse, isValidId } from '@/app/api/utils/validate-id'
 
 export async function POST(request: NextRequest, { params }: {
   params: Promise<{ conversationId: string }>
@@ -15,6 +16,7 @@ export async function POST(request: NextRequest, { params }: {
     name,
   } = body
   const { conversationId } = await params
+  if (!isValidId(conversationId)) { return invalidIdResponse() }
   const { user } = getInfo(request)
 
   // auto generate name
