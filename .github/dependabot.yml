@@ -1,0 +1,27 @@
+# 依存（npm / pnpm）と GitHub Actions の更新を週1回提案させる。
+# 乗っ取られた直後の版を取り込まないよう、公開から7日たった版だけを提案する（cooldown）。
+# 既知の脆弱性の修正（セキュリティ更新）は cooldown の対象外で、すぐに提案される。
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      npm-minor-and-patch:
+        update-types:
+          - minor
+          - patch
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      github-actions:
+        patterns:
+          - '*'
