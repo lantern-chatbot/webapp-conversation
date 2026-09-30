@@ -27,6 +27,13 @@ test('accepts a same-origin API request', async ({ request, baseURL }) => {
   expect(response.status()).toBe(200)
 })
 
+test('issues the session cookie site-wide and expires the legacy /api one', async ({ request, baseURL }) => {
+  const response = await request.get('/api/parameters', { headers: { 'Origin': new URL(baseURL!).origin, 'Sec-Fetch-Site': 'same-origin' } })
+  const cookies = response.headersArray().filter(header => header.name.toLowerCase() === 'set-cookie').map(header => header.value)
+  expect(cookies.find(cookie => /^session_id=[^;]+; Path=\/; HttpOnly/.test(cookie))).toBeDefined()
+  expect(cookies.find(cookie => cookie.startsWith('session_id=; Path=/api; Max-Age=0'))).toBeDefined()
+})
+
 test.describe('rejects IDs that would change the Dify API path', () => {
   const invalid = [
     { method: 'POST', path: '/api/messages/..%2F..%2Fevil/feedbacks', data: { rating: 'like' } },
