@@ -12,5 +12,7 @@ export default defineConfig({
     include: ['tests/components/**/*.test.tsx'],
     setupFiles: ['./tests/components/setup.ts'],
     restoreMocks: true,
+    // streamdown imports KaTeX CSS from its bundle; let Vite transform it.
+    server: { deps: { inline: ['streamdown'] } },
   },
 })
