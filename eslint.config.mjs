@@ -46,6 +46,9 @@ export default combine(
       '**/build/**',
       '**/out/**',
       '**/.next/**',
+      // Playwright output of a failed E2E run (.gitignore'd).
+      'playwright-report/**',
+      'test-results/**',
       '**/public/**',
       '**/*.json',
       'tailwind.config.js',
