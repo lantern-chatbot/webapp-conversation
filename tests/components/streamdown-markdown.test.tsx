@@ -31,3 +31,17 @@ describe('images in model output', () => {
     expect(link.getAttribute('rel')).toContain('noopener')
   })
 })
+
+describe('回答の Markdown のコードブロック', () => {
+  it('言語の指定に細工をしても、language- 以外の class を付けられない', () => {
+    // Given: 文字参照の空白で、言語の指定の後ろに別の class 名を足したコードブロック（GHSA-4fh9-h7wg-q85m）
+    const content = '```js&#x20;injected-class\nconst a = 1\n```'
+
+    // When: 画面に表示する
+    const { container } = render(<StreamdownMarkdown content={content} />)
+
+    // Then: 言語は認識されるが、足した class 名はどの要素にも付かない
+    expect(container.querySelector('.language-js')).not.toBeNull()
+    expect(container.querySelector('.injected-class')).toBeNull()
+  })
+})
