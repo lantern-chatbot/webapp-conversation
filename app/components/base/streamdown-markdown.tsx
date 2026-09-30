@@ -7,10 +7,22 @@ interface StreamdownMarkdownProps {
   className?: string
 }
 
+// Images load without a click, so an external image URL in model output could
+// carry conversation text to another server. Only this app's own images are
+// shown; links stay unrestricted because they open only when clicked.
+const ownOrigin = () => (typeof window === 'undefined' ? undefined : window.location.origin)
+
 export function StreamdownMarkdown({ content, className = '' }: StreamdownMarkdownProps) {
+  const origin = ownOrigin()
   return (
     <div className={`streamdown-markdown ${className}`}>
-      <Streamdown>{content}</Streamdown>
+      <Streamdown
+        allowedLinkPrefixes={['*']}
+        allowedImagePrefixes={origin ? [origin] : []}
+        defaultOrigin={origin}
+      >
+        {content}
+      </Streamdown>
     </div>
   )
 }
