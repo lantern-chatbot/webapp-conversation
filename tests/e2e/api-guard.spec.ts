@@ -34,6 +34,27 @@ test('issues the session cookie site-wide and expires the legacy /api one', asyn
   expect(cookies.find(cookie => cookie.startsWith('session_id=; Path=/api; Max-Age=0'))).toBeDefined()
 })
 
+test.describe('accepts only session ids this server issued', () => {
+  const issuedSession = (response: { headersArray: () => { name: string, value: string }[] }) =>
+    response.headersArray().find(header => header.name.toLowerCase() === 'set-cookie' && /^session_id=[^;]+; Path=\/;/.test(header.value))!.value.split(';')[0].slice('session_id='.length)
+
+  test('keeps an issued session id', async ({ request, baseURL }) => {
+    const headers = { 'Origin': new URL(baseURL!).origin, 'Sec-Fetch-Site': 'same-origin' }
+    const issued = issuedSession(await request.get('/api/parameters', { headers }))
+    const again = issuedSession(await request.get('/api/parameters', { headers: { ...headers, Cookie: `session_id=${issued}` } }))
+    expect(again).toBe(issued)
+  })
+
+  test('replaces a planted session id', async ({ request, baseURL }) => {
+    // Given: a value an attacker knows, planted without the signature
+    const planted = '3f2b8c1e-9d4a-4b7e-8c2f-1a2b3c4d5e6f'
+    const response = await request.get('/api/parameters', { headers: { 'Origin': new URL(baseURL!).origin, 'Sec-Fetch-Site': 'same-origin', 'Cookie': `session_id=${planted}` } })
+
+    // Then: the server issues another session id instead of using it
+    expect(issuedSession(response)).not.toContain(planted)
+  })
+})
+
 test.describe('rejects IDs that would change the Dify API path', () => {
   const invalid = [
     { method: 'POST', path: '/api/messages/..%2F..%2Fevil/feedbacks', data: { rating: 'like' } },
