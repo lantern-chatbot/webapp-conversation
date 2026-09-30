@@ -24,9 +24,13 @@ DIFY_API_KEY=
 
 # Dify APIのベースURL。Dify Cloudの場合は https://api.dify.ai/v1
 NEXT_PUBLIC_API_URL=
+
+# session_id Cookie の署名の鍵（サーバー専用）。32文字以上のランダムな文字列
+# 未設定なら DIFY_API_KEY から鍵を作る。その場合、APIキーを変えると利用者の会話一覧が引き継がれない
+SESSION_SECRET=
 ```
 
-Vercelにデプロイする場合は、同じ3つの変数をProject Settings > Environment Variablesにも設定してください。
+Vercelにデプロイする場合は、同じ変数をProject Settings > Environment Variablesにも設定してください。
 
 ## アプリ表示のカスタマイズ
 
@@ -111,7 +115,7 @@ Dify側だけの変更ではフロントのPRイベントは発生しません�
 ## デプロイ（Vercel）
 
 1. Difyでチャットフローを公開し、API AccessでAPIキーを発行、DifyアプリURLからAPP IDを確認する
-2. Vercelでこのリポジトリをインポートし、`NEXT_PUBLIC_APP_ID` / `DIFY_API_KEY` / `NEXT_PUBLIC_API_URL` を設定してデプロイ
+2. Vercelでこのリポジトリをインポートし、`NEXT_PUBLIC_APP_ID` / `DIFY_API_KEY` / `NEXT_PUBLIC_API_URL` / `SESSION_SECRET` を設定してデプロイ
 3. 本番URLで通常回答・サービス一覧カード・問い合わせ導線・引用表示が想定通りか確認する
 
 Difyのチャットフローを変更した場合は、公開・APIキー更新後に上記2〜3を再度行ってください。
