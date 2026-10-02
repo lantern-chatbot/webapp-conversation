@@ -4,6 +4,8 @@ import test from 'node:test'
 import vm from 'node:vm'
 import ChatLog from '../../integrations/google-sheets/Core.js'
 import ChatAnalysis from '../../integrations/google-sheets/Analysis.js'
+import ChatPresentation from '../../integrations/google-sheets/Presentation.js'
+import Details from '../../integrations/google-sheets/Details.js'
 
 const source = readFileSync(new URL('../../integrations/google-sheets/AnalysisUI.js', import.meta.url), 'utf8')
 
@@ -15,9 +17,12 @@ function harness(initial = {}) {
     const sheet = {
       name,
       data: structuredClone(data),
-      rows: 20,
+      rows: Math.max(20, data.length),
       columns: 26,
       charts: [],
+      links: new Map(),
+      hiddenColumns: new Set(),
+      rowHeights: new Map(),
       getName: () => name,
       getSheetId: () => [...sheets.keys()].indexOf(name) + 1,
       getMaxRows: () => sheet.rows,
@@ -37,8 +42,10 @@ function harness(initial = {}) {
         column,
         height,
         width,
+        sheetName: name,
       }),
       setFrozenRows: (value) => { sheet.frozenRows = value },
+      hideSheet: () => { sheet.hidden = true },
       getCharts: () => sheet.charts.slice(),
       removeChart: (chart) => { sheet.charts.splice(sheet.charts.indexOf(chart), 1) },
       insertChart: (chart) => { sheet.charts.push(chart) },
@@ -48,6 +55,7 @@ function harness(initial = {}) {
           setChartType: (value) => { chart.type = value; return builder },
           addRange: (value) => { chart.range = value; return builder },
           setNumHeaders: (value) => { chart.headers = value; return builder },
+          setHiddenDimensionStrategy: (value) => { chart.hiddenStrategy = value; return builder },
           setOption: (key, value) => { chart[key] = value; return builder },
           setPosition: (...values) => { chart.position = values; return builder },
           build: () => chart,
@@ -67,6 +75,8 @@ function harness(initial = {}) {
   const context = vm.createContext({
     ChatLog,
     ChatAnalysis,
+    ChatPresentation,
+    logRowFormatRequests: Details.logRowFormatRequests,
     Date,
     logSpreadsheet: () => spreadsheet,
     LockService: {
@@ -76,7 +86,7 @@ function harness(initial = {}) {
     SpreadsheetApp: { openById: () => spreadsheet, flush: () => { if (state.flushFails) { throw new Error('flush failed') } } },
     PropertiesService: { getScriptProperties: () => ({ getProperty: key => ({ SPREADSHEET_ID: 'sheet-id', CHAT_LOG_SECRET: 'a'.repeat(32), CHAT_LOG_ENVIRONMENT: 'test' })[key] }) },
     ContentService: { MimeType: { JSON: 'json' }, createTextOutput: text => ({ setMimeType: () => JSON.parse(text) }) },
-    Charts: { ChartType: { BAR: 'BAR', LINE: 'LINE' } },
+    Charts: { ChartType: { BAR: 'BAR', LINE: 'LINE' }, ChartHiddenDimensionStrategy: { SHOW_BOTH: 'SHOW_BOTH' } },
     Utilities: { formatDate: (date, zone, format) => {
       assert.equal(zone, 'Asia/Tokyo')
       const value = new Date(date.getTime() + 9 * 3600000).toISOString()
@@ -93,20 +103,45 @@ function harness(initial = {}) {
           else { sheet.columns += dim.length }
           continue
         }
-        const update = request.updateCells
-        assert.equal(update.fields, 'userEnteredValue')
+        if (request.updateSheetProperties) {
+          const properties = request.updateSheetProperties.properties
+          const sheet = [...sheets.values()].find(item => item.getSheetId() === properties.sheetId)
+          if (properties.gridProperties?.frozenRowCount !== undefined) { sheet.frozenRows = properties.gridProperties.frozenRowCount }
+          continue
+        }
+        if (request.updateDimensionProperties) {
+          const { range, properties } = request.updateDimensionProperties
+          const sheet = [...sheets.values()].find(item => item.getSheetId() === range.sheetId)
+          assert.ok(range.endIndex <= (range.dimension === 'ROWS' ? sheet.rows : sheet.columns), 'capacity grows before dimension formatting')
+          for (let index = range.startIndex; index < range.endIndex; index++) {
+            if (range.dimension === 'COLUMNS' && properties.hiddenByUser) { sheet.hiddenColumns.add(index) }
+            if (range.dimension === 'ROWS' && properties.pixelSize) { sheet.rowHeights.set(index, properties.pixelSize) }
+          }
+          continue
+        }
+        const update = request.updateCells || request.repeatCell || request.mergeCells || request.unmergeCells || request.setBasicFilter?.filter
+        assert.ok(update, `unsupported request ${Object.keys(request)}`)
         const range = update.range
         const sheet = [...sheets.values()].find(item => item.getSheetId() === range.sheetId)
         assert.ok(range.endRowIndex <= sheet.rows, 'capacity grows before a write')
+        assert.ok(range.endColumnIndex <= sheet.columns, 'column capacity grows before a write')
+        if (request.setBasicFilter) { sheet.filter = range; continue }
+        if (!request.updateCells) { continue }
         for (let r = range.startRowIndex; r < range.endRowIndex; r++) {
-          sheet.data[r] ||= []
           for (let c = range.startColumnIndex; c < range.endColumnIndex; c++) {
-            const value = update.rows[r - range.startRowIndex]?.values[c - range.startColumnIndex]?.userEnteredValue
+            const cell = update.rows[r - range.startRowIndex]?.values[c - range.startColumnIndex]
+            if (update.fields === 'userEnteredFormat.textFormat.link') {
+              sheet.links.set(`${r}:${c}`, cell?.userEnteredFormat?.textFormat?.link?.uri)
+              continue
+            }
+            assert.equal(update.fields, 'userEnteredValue', 'style-only updates must not clear values')
+            const value = cell?.userEnteredValue
             if (value && 'formulaValue' in value) {
               assert.equal(sheet.name, '会話ログ')
               assert.equal(c, 5)
               assert.equal(value.formulaValue, `=IF(E${r + 1}<>"",E${r + 1},D${r + 1})`)
             }
+            sheet.data[r] ||= []
             sheet.data[r][c] = value?.stringValue ?? value?.numberValue ?? value?.formulaValue ?? ''
           }
         }
@@ -126,7 +161,8 @@ function log(query, overrides = {}) {
 test('setup initializes owned sheets once and preserves edited rules and report date controls', () => {
   const h = harness()
   h.context.setupChatAnalysis()
-  assert.equal(h.sheets.size, 4)
+  assert.equal(h.sheets.size, 5)
+  assert.equal(h.sheets.get('集計データ').hidden, true)
   const rules = h.sheets.get('分類ルール')
   rules.data[1][3] = '=CUSTOM_CATEGORY'
   const report = h.sheets.get('集計')
@@ -220,21 +256,47 @@ test('refresh honors JST period, preserves controls, copies literal texts, clear
   const report = h.sheets.get('集計')
   report.data[1][1] = new Date('2026-10-01T15:00:00.000Z')
   report.data[2][1] = '2026-10-02'
-  h.sheets.get('その他').data[12] = ['stale']
+  h.sheets.get('その他').data[12] = Array(21).fill('stale')
+  h.sheets.get('要確認').data[5] = Array(21).fill('old-wide-report')
+  const rawBefore = structuredClone(h.sheets.get('会話ログ').data)
   assert.equal(h.context.refreshChatAnalysis(), 1)
   assert.equal(report.data[1][1].toISOString(), '2026-10-01T15:00:00.000Z')
   assert.equal(report.data[2][1], '2026-10-02')
-  assert.equal(report.data[5][1], 1)
-  assert.equal(h.sheets.get('その他').data[12][0], '')
+  assert.equal(report.data[8][0], '1')
+  assert.ok(h.sheets.get('その他').data[12].every(value => value === ''))
   const needs = h.sheets.get('要確認').data[5]
-  assert.equal(needs[0], 2)
+  assert.equal(needs[0], '2026-10-02 01:00:00')
+  assert.equal(needs[1], '=manual')
   assert.equal(needs[2], '=料金')
   assert.equal(needs[3], '=SUM(1,2)')
+  assert.equal(needs[5], '原本', 'adding a styled hyperlink must retain the text')
+  assert.equal(needs[6], 2)
+  assert.equal(needs[7], rawBefore[1][13])
+  assert.ok(needs.slice(8).every(value => value === ''), 'old 21-column raw copies are cleared')
+  assert.deepEqual(h.sheets.get('要確認').data[4].slice(0, 6), ChatPresentation.listHeaders)
+  assert.equal(h.sheets.get('要確認').filter.startRowIndex, 4)
+  assert.equal(h.sheets.get('要確認').filter.endColumnIndex, 8, 'filter sorts must include hidden row and key metadata')
+  assert.equal(h.sheets.get('要確認').frozenRows, 5)
+  assert.ok(h.sheets.get('要確認').hiddenColumns.has(6))
+  assert.ok(h.sheets.get('要確認').hiddenColumns.has(7))
+  assert.equal(h.sheets.get('要確認').links.get('5:5'), 'https://docs.google.com/spreadsheets/d/sheet-id/edit#gid=1&range=A2:T2')
   assert.equal(report.charts.length, 2)
-  assert.equal(report.data[report.charts[0].range.row - 1][0], 'カテゴリ')
-  assert.equal(report.data[report.charts[1].range.row - 1][0], '日付')
+  const helper = h.sheets.get('集計データ')
+  for (const [index, column, label] of [[0, 1, 'カテゴリ'], [1, 4, '日付']]) {
+    const chart = report.charts[index]
+    assert.equal(chart.range.sheetName, '集計データ')
+    assert.equal(chart.range.row, 3)
+    assert.equal(chart.range.column, column)
+    assert.equal(helper.data[chart.range.row - 1][column - 1], label)
+    assert.equal(chart.hiddenStrategy, 'SHOW_BOTH')
+  }
+  assert.equal(helper.hidden, true)
+  assert.deepEqual(h.sheets.get('会話ログ').data, rawBefore)
   h.context.refreshChatAnalysis()
   assert.equal(report.charts.length, 2)
+  assert.equal(report.data[1][1].toISOString(), '2026-10-01T15:00:00.000Z')
+  assert.equal(report.data[2][1], '2026-10-02')
+  assert.deepEqual(h.sheets.get('会話ログ').data, rawBefore)
 })
 
 test('invalid dates fail before any report mutation and release the lock', () => {
@@ -247,10 +309,49 @@ test('invalid dates fail before any report mutation and release the lock', () =>
   assert.equal(h.state.locked, false)
 })
 
+test('refresh upgrades existing v1 reports by adding hidden chart data without resetting controls or manual edits', () => {
+  const h = harness({
+    会話ログ: [ChatLog.headers, log('料金', { 4: '特別対応', 7: '要改善', 8: '既存メモ' })],
+    分類ルール: [ChatAnalysis.headers, ...ChatAnalysis.defaultRows],
+    集計: [['会話分析 v1', '集計'], ['開始日', '2026-10-02'], ['終了日', '2026-10-02'], [], ['指標', '件数'], ['質問数', 999]],
+    その他: [['会話分析 v1', 'その他']],
+    要確認: [['会話分析 v1', '要確認'], [], [], [], ['会話ログ行', ...ChatLog.headers], [2, ...log('古い表示')]],
+  })
+  const before = structuredClone(h.sheets.get('会話ログ').data)
+  assert.equal(h.context.refreshChatAnalysis(), 1)
+  assert.equal(h.sheets.size, 6)
+  assert.equal(h.sheets.get('集計データ').hidden, true)
+  assert.deepEqual(h.sheets.get('集計データ').data[0], ['会話分析 v1', '集計データ'])
+  assert.equal(h.sheets.get('集計').data[1][1], '2026-10-02')
+  assert.equal(h.sheets.get('集計').data[2][1], '2026-10-02')
+  assert.equal(h.sheets.get('集計').data[8][0], '1')
+  assert.equal(h.sheets.get('要確認').data[5][1], '特別対応')
+  assert.deepEqual(h.sheets.get('会話ログ').data, before)
+})
+
+test('an unrelated sheet using the helper name is rejected before setup or refresh changes anything', () => {
+  for (const method of ['setupChatAnalysis', 'refreshChatAnalysis']) {
+    const h = harness({
+      会話ログ: [ChatLog.headers, log('料金')],
+      分類ルール: [ChatAnalysis.headers, ...ChatAnalysis.defaultRows],
+      集計: [['会話分析 v1', '集計']],
+      その他: [['会話分析 v1', 'その他']],
+      要確認: [['会話分析 v1', '要確認']],
+      集計データ: [['利用者が作成したデータ']],
+    })
+    const before = structuredClone([...h.sheets].map(([name, sheet]) => [name, sheet.data]))
+    assert.throws(() => h.context[method](), /列が一致/)
+    assert.equal(h.batches.length, 0)
+    assert.deepEqual([...h.sheets].map(([name, sheet]) => [name, sheet.data]), before)
+    assert.equal(h.state.locked, false)
+  }
+})
+
 test('report growth uses atomic API capacity changes and failing flush still releases the lock', () => {
   const rows = Array.from({ length: 510 }, (_, index) => log(`質問${index}`))
   const h = harness({ 会話ログ: [ChatLog.headers, ...rows] })
   h.context.setupChatAnalysis()
+  for (const name of ['集計', 'その他', '要確認', '集計データ']) { h.sheets.get(name).columns = 8 }
   h.batches.length = 0
   h.context.refreshChatAnalysis()
   assert.ok(h.batches.some(batch => batch.requests[0].appendDimension))
@@ -259,6 +360,11 @@ test('report growth uses atomic API capacity changes and failing flush still rel
       if (request.updateCells) { assert.ok(request.updateCells.rows.length <= 500) }
     }
   }
+  assert.equal(h.sheets.get('その他').data[514][6], 511)
+  assert.equal(h.sheets.get('その他').data[514][7], rows[509][13])
+  assert.equal(h.sheets.get('その他').columns, 21)
+  assert.equal(h.sheets.get('集計').columns, 12)
+  assert.equal(h.sheets.get('集計データ').columns, 12)
   h.state.flushFails = true
   assert.throws(() => h.context.reclassifyChatLogs(), /flush failed/)
   assert.equal(h.state.locked, false)

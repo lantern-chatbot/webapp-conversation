@@ -15,6 +15,7 @@
     "test": "node --test tests/unit/*.test.mjs",
     "test:components": "vitest run",
     "test:e2e": "playwright test",
+    "preview:sheets": "node scripts/preview-chat-sheets.mjs",
     "fix": "eslint . --fix",
     "eslint-fix": "eslint . --fix",
     "lint-staged": "lint-staged",
