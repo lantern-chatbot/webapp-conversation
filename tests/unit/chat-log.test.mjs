@@ -181,6 +181,7 @@ describe('GASの保存契約', () => {
     const response = runInNewContext(`${source}\ndoPost({ postData: { contents: input } })`, {
       input: JSON.stringify({ secret, record: { ...record, query: '=1+1' } }),
       ChatLog: Core,
+      classifyLogRow: row => row,
       PropertiesService: { getScriptProperties: () => ({ getProperty: key => ({ CHAT_LOG_SECRET: secret, CHAT_LOG_ENVIRONMENT: 'test', SPREADSHEET_ID: 'sheet-id' })[key] }) },
       SpreadsheetApp: { openById: () => { assert.equal(locked, true); return spreadsheet } },
       LockService: { getScriptLock: () => ({ tryLock: () => { locked = true; return true }, releaseLock: () => { locked = false } }) },
@@ -201,6 +202,7 @@ describe('GASの保存契約', () => {
     const source = readFileSync(new URL('../../integrations/google-sheets/Code.js', import.meta.url), 'utf8')
     runInNewContext(`${source}\nappendLogRow(spreadsheet, sheet, row)`, {
       row: Core.row(record),
+      classifyLogRow: row => row,
       spreadsheet: { getId: () => 'sheet-id' },
       sheet: { getLastRow: () => 1000, getMaxRows: () => 1000, getSheetId: () => 7 },
       Sheets: { Spreadsheets: { batchUpdate: (body) => { write = body } } },

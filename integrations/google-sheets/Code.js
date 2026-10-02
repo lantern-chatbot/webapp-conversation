@@ -1,4 +1,4 @@
-/* global ChatLog, PropertiesService, SpreadsheetApp, LockService, ContentService, Sheets */
+/* global ChatLog, PropertiesService, SpreadsheetApp, LockService, ContentService, Sheets, setupChatAnalysis, classifyLogRow */
 /* exported setupChatLog, doPost, onOpen */
 function logSpreadsheet() {
   const id = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID')
@@ -26,9 +26,12 @@ function setupChatLog() {
   if (!sheet.getFilter()) { sheet.getRange(1, 1, sheet.getMaxRows(), ChatLog.headers.length).createFilter() }
   const review = SpreadsheetApp.newDataValidation().requireValueInList(['未確認', '問題なし', '要改善', '判断不可'], true).setAllowInvalid(false).build()
   sheet.getRange(2, 8, sheet.getMaxRows() - 1, 1).setDataValidation(review)
+  SpreadsheetApp.flush()
+  setupChatAnalysis()
 }
 
 function appendLogRow(spreadsheet, sheet, row) {
+  row = classifyLogRow(row)
   const index = sheet.getLastRow()
   const requests = []
   // Expand and write atomically through the same API, without pending UI writes.
@@ -84,5 +87,5 @@ function jsonResult(value) {
 
 // eslint-disable-next-line unused-imports/no-unused-vars
 function onOpen() {
-  SpreadsheetApp.getUi().createMenu('会話ログ').addItem('初期設定', 'setupChatLog').addToUi()
+  SpreadsheetApp.getUi().createMenu('会話ログ').addItem('初期設定', 'setupChatLog').addItem('集計を更新', 'refreshChatAnalysis').addItem('過去ログを再分類', 'reclassifyChatLogs').addToUi()
 }
