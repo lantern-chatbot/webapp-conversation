@@ -5,6 +5,7 @@ import { runInNewContext } from 'node:vm'
 import { createChatLogCollector, observeChatStream } from '../../app/api/utils/chat-log.ts'
 import { chatLogConfig, chatLogKey, sendChatLog } from '../../app/api/utils/chat-log-send.ts'
 import Core from '../../integrations/google-sheets/Core.js'
+import Details from '../../integrations/google-sheets/Details.js'
 
 const initial = { environment: 'test', appId: 'test-app', requestId: 'request-1', conversationId: '', createdAt: '2026-10-01T15:00:00.000Z', query: '料金を教えて' }
 const event = data => `data: ${JSON.stringify({ conversation_id: 'conversation-1', message_id: 'message-1', ...data })}\r\n\r\n`
@@ -181,6 +182,7 @@ describe('GASの保存契約', () => {
     const response = runInNewContext(`${source}\ndoPost({ postData: { contents: input } })`, {
       input: JSON.stringify({ secret, record: { ...record, query: '=1+1' } }),
       ChatLog: Core,
+      logRowFormatRequests: Details.logRowFormatRequests,
       classifyLogRow: row => row,
       PropertiesService: { getScriptProperties: () => ({ getProperty: key => ({ CHAT_LOG_SECRET: secret, CHAT_LOG_ENVIRONMENT: 'test', SPREADSHEET_ID: 'sheet-id' })[key] }) },
       SpreadsheetApp: { openById: () => { assert.equal(locked, true); return spreadsheet } },
@@ -202,6 +204,7 @@ describe('GASの保存契約', () => {
     const source = readFileSync(new URL('../../integrations/google-sheets/Code.js', import.meta.url), 'utf8')
     runInNewContext(`${source}\nappendLogRow(spreadsheet, sheet, row)`, {
       row: Core.row(record),
+      logRowFormatRequests: Details.logRowFormatRequests,
       classifyLogRow: row => row,
       spreadsheet: { getId: () => 'sheet-id' },
       sheet: { getLastRow: () => 1000, getMaxRows: () => 1000, getSheetId: () => 7 },

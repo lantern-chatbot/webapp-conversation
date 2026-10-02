@@ -1,4 +1,4 @@
-/* global ChatLog, PropertiesService, SpreadsheetApp, LockService, ContentService, Sheets, setupChatAnalysis, classifyLogRow */
+/* global ChatLog, PropertiesService, SpreadsheetApp, LockService, ContentService, Sheets, setupChatAnalysis, classifyLogRow, formatLogSheet, logRowFormatRequests */
 /* exported setupChatLog, doPost, onOpen */
 function logSpreadsheet() {
   const id = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID')
@@ -26,6 +26,7 @@ function setupChatLog() {
   if (!sheet.getFilter()) { sheet.getRange(1, 1, sheet.getMaxRows(), ChatLog.headers.length).createFilter() }
   const review = SpreadsheetApp.newDataValidation().requireValueInList(['未確認', '問題なし', '要改善', '判断不可'], true).setAllowInvalid(false).build()
   sheet.getRange(2, 8, sheet.getMaxRows() - 1, 1).setDataValidation(review)
+  formatLogSheet(sheet)
   SpreadsheetApp.flush()
   setupChatAnalysis()
 }
@@ -46,6 +47,7 @@ function appendLogRow(spreadsheet, sheet, row) {
     rows: [{ values }],
     fields: 'userEnteredValue',
   } })
+  requests.push(...logRowFormatRequests(sheet.getSheetId(), index))
   Sheets.Spreadsheets.batchUpdate({ requests }, spreadsheet.getId())
 }
 
@@ -87,5 +89,5 @@ function jsonResult(value) {
 
 // eslint-disable-next-line unused-imports/no-unused-vars
 function onOpen() {
-  SpreadsheetApp.getUi().createMenu('会話ログ').addItem('初期設定', 'setupChatLog').addItem('集計を更新', 'refreshChatAnalysis').addItem('過去ログを再分類', 'reclassifyChatLogs').addToUi()
+  SpreadsheetApp.getUi().createMenu('会話ログ').addItem('初期設定', 'setupChatLog').addItem('集計を更新', 'refreshChatAnalysis').addItem('選択行の詳細を開く', 'showSelectedChatLog').addItem('過去ログを再分類', 'reclassifyChatLogs').addToUi()
 }
