@@ -145,6 +145,7 @@ function analysisCharts(spreadsheet, sheet, data, model) {
   charts.forEach(({ count, column, title, type, subtitle }, index) => {
     if (!count) { return }
     const position = ChatPresentation.layout.charts[index]
+    const maximum = Math.max(...(type === 'BAR' ? model.categories : model.daily).map(item => item.count))
     const source = offset => ({ sourceRange: { sources: [{ sheetId: data.getSheetId(), startRowIndex: 2, endRowIndex: count + 3, startColumnIndex: column + offset, endColumnIndex: column + offset + 1 }] } })
     const series = {
       series: source(1),
@@ -174,8 +175,8 @@ function analysisCharts(spreadsheet, sheet, data, model) {
           chartType: type,
           legendPosition: 'NO_LEGEND',
           headerCount: 1,
-          axis: [{ position: type === 'BAR' ? 'BOTTOM_AXIS' : 'LEFT_AXIS', title: '質問数（件）', format: text(11), viewWindowOptions: { viewWindowMin: 0, viewWindowMode: 'EXPLICIT' } }],
-          domains: [{ domain: source(0), ...(type === 'BAR' ? { reversed: true } : {}) }],
+          axis: [{ position: type === 'BAR' ? 'BOTTOM_AXIS' : 'LEFT_AXIS', title: '質問数（件）', format: text(11), viewWindowOptions: { viewWindowMin: 0, viewWindowMax: maximum + Math.max(1, Math.ceil(maximum * 0.2)), viewWindowMode: 'EXPLICIT' } }],
+          domains: [{ domain: source(0) }],
           series: [series],
           ...(type === 'LINE' ? { lineSmoothing: false } : {}),
         },

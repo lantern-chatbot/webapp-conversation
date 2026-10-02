@@ -99,7 +99,8 @@ function renderGrid(geometry, values, extra = '', rowLookup = new Map()) {
 
 function chart(title, kind, items, position, geometry) {
   const { width, height } = position
-  const max = Math.max(1, ...items.map(item => item.count))
+  const maximum = Math.max(0, ...items.map(item => item.count))
+  const max = maximum + Math.max(1, Math.ceil(maximum * 0.2))
   const plot = { left: kind === 'bar' ? 135 : 58, top: 82, right: width - 38, bottom: height - 52 }
   let graphic = `<rect width="${width}" height="${height}" fill="${colors.white}"/><text x="22" y="31" font-size="21.333" font-weight="700" fill="${colors.navy}">${escape(title)}</text>`
   const subtitle = kind === 'bar' ? '件数の多い順 / 詳しい割合は下の表へ' : '質問が記録された日の推移'
