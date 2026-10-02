@@ -6,6 +6,16 @@ import Select, { SimpleSelect } from '@/app/components/base/select'
 
 const items = [{ value: 1, name: 'Alpha' }, { value: 2, name: 'Beta' }]
 
+it('handles clearing a searchable selection without reporting a null item', async () => {
+  const user = userEvent.setup()
+  const onSelect = vi.fn()
+  render(<Select items={items} defaultValue={1} onSelect={onSelect} />)
+  await user.clear(screen.getByRole('combobox'))
+  expect(onSelect).not.toHaveBeenCalled()
+  await user.click(await screen.findByRole('option', { name: 'Beta' }))
+  expect(onSelect).toHaveBeenLastCalledWith(items[1])
+})
+
 describe.each([
   ['searchable', Select],
   ['simple', SimpleSelect],
