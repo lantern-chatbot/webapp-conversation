@@ -46,6 +46,7 @@ export default combine(
       '**/build/**',
       '**/out/**',
       '**/.next/**',
+      'next-env.d.ts',
       // Playwright output of a failed E2E run (.gitignore'd).
       'playwright-report/**',
       'test-results/**',
