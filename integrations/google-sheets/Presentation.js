@@ -1,16 +1,16 @@
 /* Pure presentation model and bounded Google Sheets formatting requests. */
 const ChatPresentation = (() => {
-  const colors = { navy: '#14263d', teal: '#087f8c', amber: '#b56a10', lightTeal: '#eaf6f5', background: '#f5f7fb', muted: '#63758a', white: '#ffffff', line: '#dce4ee' }
+  const colors = { ink: '#212529', accent: '#4c6ef5', attention: '#e8590c', danger: '#e03131', accentLight: '#edf2ff', background: '#ffffff', card: '#f8f9fa', muted: '#868e96', subtle: '#adb5bd', white: '#ffffff', line: '#dee2e6' }
   const layout = {
     columns: 12,
-    columnWidth: 90,
+    columnWidth: 122,
     lastRow: 62,
     titleRow: 5,
     subtitleRow: 6,
     tileLabelRow: 8,
     tileValueRow: 9,
     tileContextRow: 11,
-    charts: [{ row: 14, column: 1, width: 530, height: 300 }, { row: 14, column: 7, width: 530, height: 300 }],
+    charts: [{ row: 14, column: 1, width: 720, height: 300 }, { row: 14, column: 7, width: 720, height: 300 }],
     insightRow: 27,
     categoryRow: 29,
     frequencyRow: 41,
@@ -58,10 +58,10 @@ const ChatPresentation = (() => {
       title: '会話ダッシュボード',
       subtitle: `対象期間：${start || '記録開始'} 〜 ${end || '最新'}${updatedAt ? ` | 更新：${updatedAt}` : ''}`,
       tiles: [
-        { label: '質問数', value: String(count), context: '期間内の質問・回答の件数', tone: 'navy' },
-        { label: '会話数', value: String(summary.conversationCount), context: summary.missingConversationCount ? `会話IDなし ${summary.missingConversationCount} 件を除く` : '会話IDごとの件数', tone: 'teal' },
-        { label: '要確認', value: String(summary.needsReview.length), context: '生成異常・要改善・判断不可', tone: 'amber' },
-        { label: 'その他の割合', value: share(otherCount), context: `カテゴリ「その他」 ${otherCount} 件`, tone: 'teal' },
+        { label: '質問数', value: String(count), context: '期間内の質問・回答の件数', tone: 'accent' },
+        { label: '会話数', value: String(summary.conversationCount), context: summary.missingConversationCount ? `会話IDなし ${summary.missingConversationCount} 件を除く` : '会話IDごとの件数', tone: 'accent' },
+        { label: '要確認', value: String(summary.needsReview.length), context: '生成異常・要改善・判断不可', tone: 'danger' },
+        { label: 'その他の割合', value: share(otherCount), context: `カテゴリ「その他」 ${otherCount} 件`, tone: 'attention' },
       ],
       categories,
       categoryBreakdown: categories.map(item => ({ ...item, share: share(item.count) })),
@@ -157,6 +157,7 @@ const ChatPresentation = (() => {
   function format(range, value) {
     return { repeatCell: { range, cell: { userEnteredFormat: value }, fields: Object.keys(value).map(key => `userEnteredFormat.${key}`).join(',') } }
   }
+  const side = (style, hex) => ({ style, color: rgb(hex) })
   const merge = range => ({ mergeCells: { range, mergeType: 'MERGE_ALL' } })
   const dimension = (sheetId, axis, start, end, properties) => ({ updateDimensionProperties: { range: { sheetId, dimension: axis, startIndex: start, endIndex: end }, properties, fields: Object.keys(properties).join(',') } })
   function sheetStyle(sheetId, frozenRows, color) {
@@ -164,67 +165,71 @@ const ChatPresentation = (() => {
   }
   function dashboardRequests(sheetId) {
     const requests = [
-      sheetStyle(sheetId, 0, colors.teal),
+      sheetStyle(sheetId, 0, colors.accent),
       dimension(sheetId, 'COLUMNS', 0, 12, { pixelSize: layout.columnWidth }),
       dimension(sheetId, 'ROWS', 0, layout.lastRow, { pixelSize: 26 }),
       dimension(sheetId, 'ROWS', 0, 1, { hiddenByUser: true }),
-      format(grid(sheetId, 1, layout.lastRow), { backgroundColor: rgb(colors.background), textFormat: { fontFamily: 'Arial', fontSize: 12, foregroundColor: rgb(colors.navy) }, verticalAlignment: 'MIDDLE', wrapStrategy: 'CLIP', horizontalAlignment: 'LEFT' }),
+      format(grid(sheetId, 1, layout.lastRow), { backgroundColor: rgb(colors.background), textFormat: { fontFamily: 'Noto Sans JP', fontSize: 12, foregroundColor: rgb(colors.ink) }, verticalAlignment: 'MIDDLE', wrapStrategy: 'CLIP', horizontalAlignment: 'LEFT' }),
       // B2/B3 remain date anchors; the adapter preserves their values and validation.
       merge(grid(sheetId, 1, 2, 1, 3)),
       merge(grid(sheetId, 2, 3, 1, 3)),
       merge(grid(sheetId, 1, 2, 3, 12)),
       merge(grid(sheetId, 2, 3, 3, 12)),
-      format(grid(sheetId, 1, 3, 1, 3), { backgroundColor: rgb(colors.white), numberFormat: { type: 'DATE', pattern: 'yyyy-mm-dd' }, textFormat: { foregroundColor: rgb(colors.teal), bold: true, fontSize: 12 } }),
+      format(grid(sheetId, 1, 3, 0, 1), { textFormat: { foregroundColor: rgb(colors.muted), bold: true, fontSize: 11 }, horizontalAlignment: 'RIGHT' }),
+      format(grid(sheetId, 1, 3, 1, 3), { backgroundColor: rgb(colors.accentLight), numberFormat: { type: 'DATE', pattern: 'yyyy-mm-dd' }, textFormat: { foregroundColor: rgb(colors.accent), bold: true, fontSize: 12 }, horizontalAlignment: 'CENTER', borders: { top: side('SOLID', colors.accent), bottom: side('SOLID', colors.accent), left: side('SOLID', colors.accent), right: side('SOLID', colors.accent) } }),
+      format(grid(sheetId, 1, 3, 3, 12), { textFormat: { foregroundColor: rgb(colors.muted), fontSize: 11 } }),
       dimension(sheetId, 'ROWS', 1, 3, { pixelSize: 34 }),
       merge(grid(sheetId, 4, 5)),
       merge(grid(sheetId, 5, 6)),
       dimension(sheetId, 'ROWS', 4, 5, { pixelSize: 54 }),
       dimension(sheetId, 'ROWS', 5, 6, { pixelSize: 32 }),
-      format(grid(sheetId, 4, 5), { backgroundColor: rgb(colors.navy), textFormat: { bold: true, fontSize: 28, foregroundColor: rgb(colors.white) } }),
+      format(grid(sheetId, 4, 5), { textFormat: { bold: true, fontSize: 26, foregroundColor: rgb(colors.ink) }, verticalAlignment: 'BOTTOM' }),
       format(grid(sheetId, 5, 6), { textFormat: { fontSize: 11, foregroundColor: rgb(colors.muted) } }),
       dimension(sheetId, 'ROWS', 7, 8, { pixelSize: 36 }),
       dimension(sheetId, 'ROWS', 8, 10, { pixelSize: 32 }),
       dimension(sheetId, 'ROWS', 10, 11, { pixelSize: 38 }),
     ]
-    ;['navy', 'teal', 'amber', 'teal'].forEach((tone, index) => {
+    // Light cards with a colored top rule; thick white side borders keep a gap between neighbors.
+    ;['accent', 'accent', 'danger', 'attention'].forEach((tone, index) => {
       const column = index * 3
       requests.push(
-        format(grid(sheetId, 7, 11, column, column + 3), { backgroundColor: rgb(index === 2 ? '#fff4e5' : colors.white), horizontalAlignment: 'CENTER' }),
+        format(grid(sheetId, 7, 11, column, column + 3), { backgroundColor: rgb(colors.card), horizontalAlignment: 'CENTER', borders: { left: side('SOLID_THICK', colors.white), right: side('SOLID_THICK', colors.white) } }),
+        format(grid(sheetId, 7, 8, column, column + 3), { borders: { top: side('SOLID_THICK', colors[tone]), left: side('SOLID_THICK', colors.white), right: side('SOLID_THICK', colors.white) } }),
         merge(grid(sheetId, 7, 8, column, column + 3)),
         merge(grid(sheetId, 8, 10, column, column + 3)),
         merge(grid(sheetId, 10, 11, column, column + 3)),
-        format(grid(sheetId, 7, 8, column, column + 3), { textFormat: { fontSize: 13, bold: true, foregroundColor: rgb(colors[tone]) } }),
-        format(grid(sheetId, 8, 10, column, column + 3), { textFormat: { fontSize: 34, bold: true, foregroundColor: rgb(colors[tone]) } }),
+        format(grid(sheetId, 7, 8, column, column + 3), { textFormat: { fontSize: 12, bold: true, foregroundColor: rgb(colors.muted) } }),
+        format(grid(sheetId, 8, 10, column, column + 3), { textFormat: { fontSize: 34, bold: true, foregroundColor: rgb(tone === 'danger' ? colors.danger : colors.ink) } }),
         format(grid(sheetId, 10, 11, column, column + 3), { textFormat: { fontSize: 11, foregroundColor: rgb(colors.muted) }, wrapStrategy: 'WRAP' }),
       )
     })
     requests.push(
       merge(grid(sheetId, 26, 27)),
       dimension(sheetId, 'ROWS', 26, 27, { pixelSize: 44 }),
-      format(grid(sheetId, 26, 27), { backgroundColor: rgb(colors.lightTeal), textFormat: { fontSize: 12, bold: true, foregroundColor: rgb(colors.teal) }, wrapStrategy: 'WRAP' }),
+      format(grid(sheetId, 26, 27), { backgroundColor: rgb(colors.accentLight), textFormat: { fontSize: 12, bold: true, foregroundColor: rgb(colors.accent) }, wrapStrategy: 'WRAP' }),
       merge(grid(sheetId, 28, 29, 0, 6)),
       merge(grid(sheetId, 28, 29, 6, 12)),
       merge(grid(sheetId, 40, 41)),
       merge(grid(sheetId, 53, 54)),
       merge(grid(sheetId, 34, 35, 6, 12)),
       merge(grid(sheetId, 38, 39, 6, 12)),
-      format(grid(sheetId, 34, 35, 6, 12), { backgroundColor: rgb(colors.lightTeal), textFormat: { fontSize: 12, bold: true, foregroundColor: rgb(colors.teal) } }),
+      format(grid(sheetId, 34, 35, 6, 12), { backgroundColor: rgb(colors.accentLight), textFormat: { fontSize: 12, bold: true, foregroundColor: rgb(colors.accent) } }),
       format(grid(sheetId, 38, 39, 6, 12), { textFormat: { fontSize: 11, foregroundColor: rgb(colors.muted) }, wrapStrategy: 'WRAP' }),
       merge(grid(sheetId, 61, 62)),
       dimension(sheetId, 'ROWS', 61, 62, { pixelSize: 42 }),
       format(grid(sheetId, 61, 62), { textFormat: { fontSize: 11, foregroundColor: rgb(colors.muted) }, wrapStrategy: 'WRAP' }),
     )
     for (const row of [28, 40, 53]) {
-      requests.push(dimension(sheetId, 'ROWS', row, row + 1, { pixelSize: 40 }), format(grid(sheetId, row, row + 1), { backgroundColor: rgb(colors.navy), textFormat: { fontSize: 14, bold: true, foregroundColor: rgb(colors.white) } }))
+      requests.push(dimension(sheetId, 'ROWS', row, row + 1, { pixelSize: 44 }), format(grid(sheetId, row, row + 1), { textFormat: { fontSize: 15, bold: true, foregroundColor: rgb(colors.ink) }, verticalAlignment: 'BOTTOM', borders: { bottom: side('SOLID_MEDIUM', colors.ink) } }))
     }
     for (const row of [29, 41, 54]) {
-      requests.push(dimension(sheetId, 'ROWS', row, row + 1, { pixelSize: 36 }), format(grid(sheetId, row, row + 1), { backgroundColor: rgb(colors.lightTeal), textFormat: { fontSize: 12, bold: true, foregroundColor: rgb(colors.teal) } }))
+      requests.push(dimension(sheetId, 'ROWS', row, row + 1, { pixelSize: 36 }), format(grid(sheetId, row, row + 1), { textFormat: { fontSize: 11, bold: true, foregroundColor: rgb(colors.muted) }, borders: { bottom: side('SOLID', colors.line) } }))
     }
     for (const [start, end, height] of [[30, 39, 42], [42, 52, 44], [55, 60, 44]]) {
       requests.push(dimension(sheetId, 'ROWS', start, end, { pixelSize: height }), format(grid(sheetId, start, end), { wrapStrategy: 'WRAP' }))
       for (let row = start; row < end; row++) {
-        if ((row - start) % 2 === 0) {
-          requests.push(format(grid(sheetId, row, row + 1, 0, start === 30 ? 6 : 12), { backgroundColor: rgb(colors.white) }))
+        if ((row - start) % 2 === 1) {
+          requests.push(format(grid(sheetId, row, row + 1, 0, start === 30 ? 6 : 12), { backgroundColor: rgb(colors.card) }))
         }
       }
     }
@@ -243,26 +248,27 @@ const ChatPresentation = (() => {
   function listRequests(sheetId, lastRow) {
     if (!Number.isSafeInteger(lastRow) || lastRow < 5) { throw new Error('一覧の最終行が不正です') }
     const requests = [
-      sheetStyle(sheetId, 5, colors.amber),
+      sheetStyle(sheetId, 5, colors.attention),
       dimension(sheetId, 'COLUMNS', 6, 21, { hiddenByUser: true }),
       dimension(sheetId, 'ROWS', 0, 1, { hiddenByUser: true }),
-      format(grid(sheetId, 1, lastRow, 0, 6), { backgroundColor: rgb(colors.white), textFormat: { fontFamily: 'Arial', fontSize: 12, foregroundColor: rgb(colors.navy) }, verticalAlignment: 'MIDDLE', wrapStrategy: 'WRAP' }),
+      format(grid(sheetId, 1, lastRow, 0, 6), { backgroundColor: rgb(colors.white), textFormat: { fontFamily: 'Noto Sans JP', fontSize: 12, foregroundColor: rgb(colors.ink) }, verticalAlignment: 'MIDDLE', wrapStrategy: 'WRAP' }),
       merge(grid(sheetId, 1, 2, 0, 6)),
       merge(grid(sheetId, 2, 3, 0, 6)),
       dimension(sheetId, 'ROWS', 1, 2, { pixelSize: 54 }),
       dimension(sheetId, 'ROWS', 2, 3, { pixelSize: 38 }),
       dimension(sheetId, 'ROWS', 3, 4, { pixelSize: 16 }),
       dimension(sheetId, 'ROWS', 4, 5, { pixelSize: 40 }),
-      format(grid(sheetId, 1, 2, 0, 6), { backgroundColor: rgb(colors.navy), textFormat: { bold: true, fontSize: 26, foregroundColor: rgb(colors.white) } }),
+      format(grid(sheetId, 1, 2, 0, 6), { textFormat: { bold: true, fontSize: 24, foregroundColor: rgb(colors.ink) }, verticalAlignment: 'BOTTOM' }),
       format(grid(sheetId, 2, 3, 0, 6), { textFormat: { fontSize: 11, foregroundColor: rgb(colors.muted) } }),
-      format(grid(sheetId, 4, 5, 0, 6), { backgroundColor: rgb(colors.lightTeal), textFormat: { fontSize: 12, bold: true, foregroundColor: rgb(colors.teal) } }),
+      format(grid(sheetId, 4, 5, 0, 6), { textFormat: { fontSize: 11, bold: true, foregroundColor: rgb(colors.muted) }, borders: { bottom: side('SOLID_MEDIUM', colors.ink) } }),
     ]
     ;[150, 140, 280, 400, 180, 72].forEach((width, column) => requests.push(dimension(sheetId, 'COLUMNS', column, column + 1, { pixelSize: width })))
     if (lastRow > 5) {
       requests.push(
         dimension(sheetId, 'ROWS', 5, lastRow, { pixelSize: 80 }),
-        format(grid(sheetId, 5, lastRow, 4, 5), { backgroundColor: rgb('#fff4e5'), textFormat: { fontSize: 12, foregroundColor: rgb(colors.amber) } }),
-        format(grid(sheetId, 5, lastRow, 5, 6), { textFormat: { fontSize: 12, foregroundColor: rgb(colors.teal), underline: true }, horizontalAlignment: 'CENTER' }),
+        format(grid(sheetId, 5, lastRow, 0, 6), { borders: { bottom: side('SOLID', colors.line) } }),
+        format(grid(sheetId, 5, lastRow, 4, 5), { textFormat: { fontSize: 12, bold: true, foregroundColor: rgb(colors.attention) } }),
+        format(grid(sheetId, 5, lastRow, 5, 6), { textFormat: { fontSize: 12, foregroundColor: rgb(colors.accent), underline: true }, horizontalAlignment: 'CENTER' }),
       )
     }
     return requests

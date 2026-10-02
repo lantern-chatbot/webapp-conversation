@@ -322,9 +322,8 @@ test('refresh honors JST period, preserves controls, copies literal texts, clear
   }
   assert.equal(report.charts[0].spec.basicChart.chartType, 'BAR')
   assert.equal(report.charts[0].spec.basicChart.domains[0].reversed, undefined, 'native BAR preserves the descending category order without reversing it')
-  assert.equal(report.charts[1].spec.basicChart.chartType, 'LINE')
-  assert.equal(report.charts[1].spec.basicChart.series[0].lineStyle.width, 3)
-  assert.equal(report.charts[1].spec.basicChart.series[0].pointStyle.size, 7)
+  assert.equal(report.charts[1].spec.basicChart.chartType, 'COLUMN')
+  assert.equal(report.charts[1].spec.basicChart.series[0].dataLabel.placement, 'OUTSIDE_END')
   assert.equal(helper.data[3][3], Date.UTC(2026, 9, 2) / 86400000 + 25569)
   assert.equal(helper.numberFormats.get('3:3').type, 'DATE')
   assert.equal(helper.numberFormats.get('3:3').pattern, 'M/d')

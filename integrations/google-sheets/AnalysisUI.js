@@ -136,11 +136,11 @@ function analysisUnmerge(sheet, startRow, endRow, width) {
 function analysisCharts(spreadsheet, sheet, data, model) {
   const rgb = hex => ({ red: Number.parseInt(hex.slice(1, 3), 16) / 255, green: Number.parseInt(hex.slice(3, 5), 16) / 255, blue: Number.parseInt(hex.slice(5, 7), 16) / 255 })
   const color = name => ({ rgbColor: rgb(ChatPresentation.colors[name]) })
-  const text = (size, bold = false) => ({ fontFamily: 'Arial', fontSize: size, bold, foregroundColorStyle: color('navy') })
+  const text = (size, bold = false) => ({ fontFamily: 'Noto Sans JP', fontSize: size, bold, foregroundColorStyle: color('ink') })
   const requests = sheet.getCharts().map(chart => ({ deleteEmbeddedObject: { objectId: chart.getChartId() } }))
   const charts = [
     { count: model.categories.length, column: 0, title: 'カテゴリ別の質問数', type: 'BAR', subtitle: '件数の多い順 / 詳しい割合は下の表へ' },
-    { count: model.daily.length, column: 3, title: '日別の質問数', type: 'LINE', subtitle: '質問が記録された日の推移' },
+    { count: model.daily.length, column: 3, title: '日別の質問数', type: 'COLUMN', subtitle: '質問が記録された日の件数' },
   ]
   charts.forEach(({ count, column, title, type, subtitle }, index) => {
     if (!count) { return }
@@ -150,15 +150,11 @@ function analysisCharts(spreadsheet, sheet, data, model) {
     const series = {
       series: source(1),
       targetAxis: type === 'BAR' ? 'BOTTOM_AXIS' : 'LEFT_AXIS',
-      colorStyle: color(type === 'BAR' ? 'teal' : 'navy'),
-      dataLabel: { type: 'DATA', textFormat: text(12, true), placement: type === 'BAR' ? 'OUTSIDE_END' : 'ABOVE' },
+      colorStyle: color('accent'),
+      dataLabel: { type: 'DATA', textFormat: text(12, true), placement: 'OUTSIDE_END' },
     }
-    if (type === 'LINE') {
-      series.lineStyle = { width: 3, type: 'SOLID' }
-      series.pointStyle = { size: 7, shape: 'CIRCLE' }
-    }
-    else {
-      series.styleOverrides = model.categories.flatMap((item, itemIndex) => item.category === 'その他' ? [{ index: itemIndex, colorStyle: color('amber') }] : [])
+    if (type === 'BAR') {
+      series.styleOverrides = model.categories.flatMap((item, itemIndex) => item.category === 'その他' ? [{ index: itemIndex, colorStyle: color('subtle') }] : [])
     }
     requests.push({ addChart: { chart: {
       spec: {
@@ -168,7 +164,7 @@ function analysisCharts(spreadsheet, sheet, data, model) {
         subtitleTextFormat: { ...text(11), foregroundColorStyle: color('muted') },
         titleTextPosition: { horizontalAlignment: 'LEFT' },
         subtitleTextPosition: { horizontalAlignment: 'LEFT' },
-        fontName: 'Arial',
+        fontName: 'Noto Sans JP',
         backgroundColorStyle: color('white'),
         hiddenDimensionStrategy: 'SHOW_ALL',
         basicChart: {
@@ -178,7 +174,6 @@ function analysisCharts(spreadsheet, sheet, data, model) {
           axis: [{ position: type === 'BAR' ? 'BOTTOM_AXIS' : 'LEFT_AXIS', title: '質問数（件）', format: text(11), viewWindowOptions: { viewWindowMin: 0, viewWindowMax: maximum + Math.max(1, Math.ceil(maximum * 0.2)), viewWindowMode: 'EXPLICIT' } }],
           domains: [{ domain: source(0) }],
           series: [series],
-          ...(type === 'LINE' ? { lineSmoothing: false } : {}),
         },
       },
       border: { colorStyle: color('white') },

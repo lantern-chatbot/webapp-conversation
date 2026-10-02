@@ -5,9 +5,10 @@ const ChatDetails = (() => {
     columns: [[1, 170], [2, 300], [3, 420], [5, 130], [6, 130], [7, 135], [8, 115], [9, 180]],
     rowHeight: 88,
     headerHeight: 40,
-    headerBackground: '#243b53',
+    headerBackground: '#212529',
     headerText: '#ffffff',
-    editableBackground: '#fff9e9',
+    editableHeaderBackground: '#e67700',
+    editableBackground: '#fff9db',
   }
   const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', '\'': '&#39;' })[character])
   function render(row) {
@@ -89,8 +90,8 @@ function logRowFormatRequests(sheetId, startRowIndex) {
   const range = { sheetId, startRowIndex, endRowIndex: startRowIndex + 1, startColumnIndex: 0, endColumnIndex: 20 }
   return [
     { updateDimensionProperties: { range: { sheetId, dimension: 'ROWS', startIndex: startRowIndex, endIndex: startRowIndex + 1 }, properties: { pixelSize: ChatDetails.logLayout.rowHeight }, fields: 'pixelSize' } },
-    { repeatCell: { range, cell: { userEnteredFormat: { wrapStrategy: 'CLIP', verticalAlignment: 'TOP', textFormat: { fontFamily: 'Arial', fontSize: 11 }, backgroundColor: { red: 1, green: 1, blue: 1 } } }, fields: 'userEnteredFormat.wrapStrategy,userEnteredFormat.verticalAlignment,userEnteredFormat.textFormat,userEnteredFormat.backgroundColor' } },
-    ...[[4, 5], [7, 9]].map(([startColumnIndex, endColumnIndex]) => ({ repeatCell: { range: { ...range, startColumnIndex, endColumnIndex }, cell: { userEnteredFormat: { backgroundColor: { red: 1, green: 0.976, blue: 0.914 } } }, fields: 'userEnteredFormat.backgroundColor' } })),
+    { repeatCell: { range, cell: { userEnteredFormat: { wrapStrategy: 'CLIP', verticalAlignment: 'TOP', textFormat: { fontFamily: 'Noto Sans JP', fontSize: 11 }, backgroundColor: { red: 1, green: 1, blue: 1 } } }, fields: 'userEnteredFormat.wrapStrategy,userEnteredFormat.verticalAlignment,userEnteredFormat.textFormat,userEnteredFormat.backgroundColor' } },
+    ...[[4, 5], [7, 9]].map(([startColumnIndex, endColumnIndex]) => ({ repeatCell: { range: { ...range, startColumnIndex, endColumnIndex }, cell: { userEnteredFormat: { backgroundColor: { red: 1, green: 0.976, blue: 0.859 } } }, fields: 'userEnteredFormat.backgroundColor' } })),
   ]
 }
 
@@ -108,19 +109,21 @@ function formatLogSheet(sheet) {
   }
   sheet.setRowHeight(1, layout.headerHeight)
   sheet.getRange(1, 1, 1, 20).setBackground(layout.headerBackground).setFontColor(layout.headerText).setFontWeight('bold').setVerticalAlignment('middle')
+  // Columns the operator fills in get their own header color.
+  for (const column of ['E1', 'H1', 'I1']) { sheet.getRange(column).setBackground(layout.editableHeaderBackground) }
   sheet.getRange('E1').setNote('カテゴリを手動で修正する欄です。空欄にすると自動分類を使います。')
   sheet.getRange('H1').setNote('回答を確認した結果を選択してください。生成状態とは別の評価です。')
   sheet.getRange('I1').setNote('改善点・対応内容などを記録できます。')
   if (sheet.getLastRow() > 1) {
     sheet.setRowHeightsForced(2, sheet.getLastRow() - 1, layout.rowHeight)
-    sheet.getRange(2, 1, sheet.getLastRow() - 1, 20).setFontFamily('Arial').setFontSize(11).setVerticalAlignment('top').setWrapStrategy(SpreadsheetApp.WrapStrategy.CLIP).setBackground('#ffffff')
+    sheet.getRange(2, 1, sheet.getLastRow() - 1, 20).setFontFamily('Noto Sans JP').setFontSize(11).setVerticalAlignment('top').setWrapStrategy(SpreadsheetApp.WrapStrategy.CLIP).setBackground('#ffffff')
     sheet.getRange(2, 5, sheet.getLastRow() - 1, 1).setBackground(layout.editableBackground)
     sheet.getRange(2, 8, sheet.getLastRow() - 1, 2).setBackground(layout.editableBackground)
   }
   const specifications = [
-    ['=AND(ROW()>1,$B1<>"",$G1<>"完了")', 'G1:G', '#fff0d7', '#865315'],
-    ['=AND(ROW()>1,$B1<>"",$H1="要改善")', 'H1:H', '#fde8e7', '#9f3235'],
-    ['=AND(ROW()>1,$B1<>"",$H1="問題なし")', 'H1:H', '#def3eb', '#146a50'],
+    ['=AND(ROW()>1,$B1<>"",$G1<>"完了")', 'G1:G', '#fff4e6', '#d9480f'],
+    ['=AND(ROW()>1,$B1<>"",$H1="要改善")', 'H1:H', '#ffe3e3', '#c92a2a'],
+    ['=AND(ROW()>1,$B1<>"",$H1="問題なし")', 'H1:H', '#ebfbee', '#2b8a3e'],
   ]
   const formulas = specifications.map(item => item[0])
   const others = sheet.getConditionalFormatRules().filter(rule => !formulas.includes(String(rule.getBooleanCondition()?.getCriteriaValues()?.[0] ?? '')))

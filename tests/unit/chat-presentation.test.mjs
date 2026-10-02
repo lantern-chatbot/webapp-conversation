@@ -181,3 +181,13 @@ test('一覧はマーカーを隠しタイトルと説明を確保してヘッ�
   assert.ok(requests.some(request => request.updateDimensionProperties?.range.dimension === 'COLUMNS' && request.updateDimensionProperties.range.startIndex === 6 && request.updateDimensionProperties.range.endIndex === 21 && request.updateDimensionProperties.properties.hiddenByUser))
   assert.ok(requests.some(request => request.mergeCells?.range.startRowIndex === 1 && request.mergeCells.range.endColumnIndex === 6))
 })
+
+test('KPIカードは色付きの上罫線で区別し、要確認の数値だけ警告色にする', () => {
+  const { colors } = Presentation
+  const rgb = hex => ({ red: Number.parseInt(hex.slice(1, 3), 16) / 255, green: Number.parseInt(hex.slice(3, 5), 16) / 255, blue: Number.parseInt(hex.slice(5, 7), 16) / 255 })
+  const cells = Presentation.dashboardRequests(7).map(request => request.repeatCell).filter(Boolean)
+  const tops = [0, 3, 6, 9].map(column => cells.find(cell => cell.range.startRowIndex === 7 && cell.range.endRowIndex === 8 && cell.range.startColumnIndex === column && cell.cell.userEnteredFormat.borders?.top))
+  assert.deepEqual(tops.map(cell => cell.cell.userEnteredFormat.borders.top.color), [colors.accent, colors.accent, colors.danger, colors.attention].map(rgb))
+  const values = [0, 3, 6, 9].map(column => cells.find(cell => cell.range.startRowIndex === 8 && cell.range.startColumnIndex === column && cell.cell.userEnteredFormat.textFormat?.fontSize === 34))
+  assert.deepEqual(values.map(cell => cell.cell.userEnteredFormat.textFormat.foregroundColor), [colors.ink, colors.ink, colors.danger, colors.ink].map(rgb))
+})
