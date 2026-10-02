@@ -31,6 +31,10 @@ export default defineConfig({
       env: {
         // Match Vercel's build output (no Docker standalone symlinks).
         VERCEL: '1',
+        VERCEL_ENV: '',
+        CHAT_LOG_MODE: 'test',
+        CHAT_LOG_URL: 'http://127.0.0.1:4319/chat-log',
+        CHAT_LOG_SECRET: 'local-chat-log-test-secret-12345678',
         NEXT_PUBLIC_APP_ID: 'ci-test-app',
         NEXT_PUBLIC_API_URL: 'http://127.0.0.1:4319/v1',
         DIFY_API_KEY: 'ci-test-key',
