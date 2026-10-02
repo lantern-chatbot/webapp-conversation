@@ -60,8 +60,8 @@ const Select: FC<ISelectProps> = ({
       disabled={disabled}
       value={selectedItem}
       className={className}
-      onChange={(value: Item) => {
-        if (!disabled) {
+      onChange={(value: Item | null) => {
+        if (!disabled && value) {
           setSelectedValue(value.value)
           setOpen(false)
           onSelect(value)
@@ -145,8 +145,8 @@ const SimpleSelect: FC<ISelectProps> = ({
   return (
     <Listbox
       value={selectedItem}
-      onChange={(value: Item) => {
-        if (!disabled) {
+      onChange={(value: Item | null) => {
+        if (!disabled && value) {
           setSelectedValue(value.value)
           onSelect(value)
         }
