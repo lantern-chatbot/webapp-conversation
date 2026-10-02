@@ -176,8 +176,8 @@ importers:
         specifier: ^4.0.7
         version: 4.0.7
       negotiator:
-        specifier: ^0.6.3
-        version: 0.6.4
+        specifier: ^1.1.0
+        version: 1.1.0
       next:
         specifier: ^15.5.26
         version: 15.5.26(@playwright/test@1.63.0)(react-dom@19.1.4(react@19.1.4))(react@19.1.4)(sass@1.92.1)
@@ -1938,6 +1938,10 @@ packages:
   confbox@0.2.2:
     resolution: {integrity: sha512-1NB+BKqhtNipMsov4xI/NnhCKp9XG9NamYp5PVm9klAT0fsrNPjaFICsCFhNhwZJKNh7zB/3q8qXz0E9oaMNtQ==}
 
+  content-type@2.1.0:
+    resolution: {integrity: sha512-mj7UPXE0jaqaOsukNZRUEfEi2AcL7C/vwmwcHV0O97eO1E1pxBZuyjlZrx5seTaNBg1U6+o35wpa35Qfcc+7ag==}
+    engines: {node: '>=18'}
+
   copy-to-clipboard@3.3.3:
     resolution: {integrity: sha512-2KV8NhB5JqC3ky0r9PMCAZKbUHSwtEo4CwCs0KXgruG43gX5PMqDEBbVU4OUzw2MuAWUfsuFmWvEKG5QRfSnJA==}
 
@@ -3672,9 +3676,9 @@ packages:
     resolution: {integrity: sha512-kKHJhxwpR/Okycz4HhQKKlhWe4ASEfPgkSWNmKFHd7+ezuQlxkA5cM3+XkBPvm1gmHen3w53qsYAv+8GwRrBlg==}
     engines: {node: '>=18'}
 
-  negotiator@0.6.4:
-    resolution: {integrity: sha512-myRT3DiWPHqho5PrJaIRyaMv2kgYf0mUVgBNOYMuCH5Ki1yEiQaf/ZJuQ62nvpc44wL5WDbTX7yGJi1Neevw8w==}
-    engines: {node: '>= 0.6'}
+  negotiator@1.1.0:
+    resolution: {integrity: sha512-NMPBRMJgiQHjbd8phG3Vebdx4kZ1H121rbl5IkMqeOsahptB9BKo/d7oJ3zTXqTgagn2bWlNSXkh0QUGM31RYg==}
+    engines: {node: '>=18'}
 
   next@15.5.26:
     resolution: {integrity: sha512-EVCqhvq8Hs+nX9udH2VzE/iXAg9QodZBZnwVJTuAMl386GIYvlJtYhFytV9nSlDYxKw3kEyv8I2dCQs0+on0sQ==}
@@ -6483,6 +6487,8 @@ snapshots:
 
   confbox@0.2.2: {}
 
+  content-type@2.1.0: {}
+
   copy-to-clipboard@3.3.3:
     dependencies:
       toggle-selection: 1.0.6
@@ -8854,7 +8860,9 @@ snapshots:
 
   natural-orderby@5.0.0: {}
 
-  negotiator@0.6.4: {}
+  negotiator@1.1.0:
+    dependencies:
+      content-type: 2.1.0
 
   next@15.5.26(@playwright/test@1.63.0)(react-dom@19.1.4(react@19.1.4))(react@19.1.4)(sass@1.92.1):
     dependencies:
