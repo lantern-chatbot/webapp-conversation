@@ -1,6 +1,6 @@
 'use client'
 
-import type { ChangeEvent, FC } from 'react'
+import type { ChangeEvent, FC, ReactElement } from 'react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { imageUpload } from './utils'
@@ -9,7 +9,7 @@ import { TransferMethod } from '@/types/app'
 import Toast from '@/app/components/base/toast'
 
 interface UploaderProps {
-  children: (hovering: boolean) => JSX.Element
+  children: (hovering: boolean) => ReactElement
   onUpload: (imageFile: ImageFile) => void
   limit?: number
   disabled?: boolean

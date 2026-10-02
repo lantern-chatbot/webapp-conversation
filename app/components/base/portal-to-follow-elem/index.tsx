@@ -109,19 +109,20 @@ export const PortalToFollowElemTrigger = React.forwardRef<
 React.HTMLProps<HTMLElement> & { asChild?: boolean }
 >(({ children, asChild = false, ...props }, propRef) => {
   const context = usePortalToFollowElemContext()
-  const childrenRef = (children as any).ref
+  const childrenRef = React.isValidElement<React.HTMLProps<HTMLElement>>(children) ? children.props.ref : undefined
   const ref = useMergeRefs([context.refs.setReference, propRef, childrenRef])
 
   // `asChild` allows the user to pass any element as the anchor
-  if (asChild && React.isValidElement(children)) {
+  if (asChild && React.isValidElement<React.HTMLProps<HTMLElement>>(children)) {
+    const referenceProps = {
+      ...props,
+      ...children.props,
+      ref,
+      'data-state': context.open ? 'open' : 'closed',
+    }
     return React.cloneElement(
       children,
-      context.getReferenceProps({
-        ref,
-        ...props,
-        ...children.props,
-        'data-state': context.open ? 'open' : 'closed',
-      }),
+      context.getReferenceProps(referenceProps),
     )
   }
 
