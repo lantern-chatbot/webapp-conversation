@@ -1,6 +1,7 @@
 import {
   useCallback,
 } from 'react'
+import type { ReactElement } from 'react'
 import {
   RiLink,
   RiUploadCloud2Line,
@@ -22,7 +23,7 @@ import { TransferMethod } from '@/types/app'
 interface Option {
   value: string
   label: string
-  icon: JSX.Element
+  icon: ReactElement
 }
 interface FileUploaderInAttachmentProps {
   fileConfig: FileUpload
