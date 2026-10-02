@@ -25,14 +25,17 @@ describe.each([
     : screen.getByRole('button').textContent
 
   it('reflects options that arrive after the default value', () => {
+    const consoleError = vi.spyOn(console, 'error')
     const onSelect = vi.fn()
     const { rerender } = render(<Component items={[]} defaultValue={2} onSelect={onSelect} />)
     rerender(<Component items={items} defaultValue={2} onSelect={onSelect} />)
     expect(displayed()).toBe('Beta')
     expect(onSelect).not.toHaveBeenCalled()
+    expect(consoleError).not.toHaveBeenCalled()
   })
 
   it('reflects changed labels, removed options and new defaults', () => {
+    const consoleError = vi.spyOn(console, 'error')
     const onSelect = vi.fn()
     const { rerender } = render(<Component items={items} defaultValue={1} onSelect={onSelect} />)
     const renamed = [{ value: 1, name: 'Updated' }, items[1]]
@@ -42,6 +45,7 @@ describe.each([
     expect(displayed()).toBe('')
     rerender(<Component items={items} defaultValue={2} onSelect={onSelect} />)
     expect(displayed()).toBe('Beta')
+    expect(consoleError).not.toHaveBeenCalled()
   })
 
   it('preserves user selection when the parent recreates its options', async () => {
