@@ -1,4 +1,4 @@
-/* global ChatLog, ChatAnalysis, ChatPresentation, logSpreadsheet, Sheets, SpreadsheetApp, LockService, Utilities, Charts */
+/* global ChatLog, ChatAnalysis, ChatPresentation, logSpreadsheet, Sheets, SpreadsheetApp, LockService, Utilities */
 /* exported setupChatAnalysis, classifyLogRow, refreshChatAnalysis, reclassifyChatLogs */
 const analysisReportNames = ['集計', 'その他', '要確認']
 const analysisDataName = '集計データ'
@@ -118,7 +118,7 @@ function classifyLogRow(row) {
 function analysisChartData(result, model) {
   const tables = [
     { column: 0, rows: [['カテゴリ', '件数'], ...model.categories.map(item => [item.category, item.count])] },
-    { column: 3, rows: [['日付', '件数'], ...model.daily.map(item => [item.date, item.count])] },
+    { column: 3, rows: [['日付', '件数'], ...model.daily.map(item => [Date.parse(`${item.date}T00:00:00Z`) / 86400000 + 25569, item.count])] },
     { column: 6, rows: [['生成状態', '件数'], ...result.statuses.map(item => [item.status, item.count])] },
     { column: 9, rows: [['質問（正規化）', '件数', '質問例'], ...result.questions.map(item => [item.normalizedQuery, item.count, item.example])] },
   ]
@@ -133,18 +133,59 @@ function analysisUnmerge(sheet, startRow, endRow, width) {
   return { unmergeCells: { range: { sheetId: sheet.getSheetId(), startRowIndex: startRow, endRowIndex: endRow, startColumnIndex: 0, endColumnIndex: width } } }
 }
 
-function analysisCharts(sheet, data, model) {
-  for (const chart of sheet.getCharts()) { sheet.removeChart(chart) }
+function analysisCharts(spreadsheet, sheet, data, model) {
+  const rgb = hex => ({ red: Number.parseInt(hex.slice(1, 3), 16) / 255, green: Number.parseInt(hex.slice(3, 5), 16) / 255, blue: Number.parseInt(hex.slice(5, 7), 16) / 255 })
+  const color = name => ({ rgbColor: rgb(ChatPresentation.colors[name]) })
+  const text = (size, bold = false) => ({ fontFamily: 'Arial', fontSize: size, bold, foregroundColorStyle: color('navy') })
+  const requests = sheet.getCharts().map(chart => ({ deleteEmbeddedObject: { objectId: chart.getChartId() } }))
   const charts = [
-    [model.categories.length, 1, 'カテゴリ別の質問数', Charts.ChartType.BAR],
-    [model.daily.length, 4, '日別の質問数', Charts.ChartType.LINE],
+    { count: model.categories.length, column: 0, title: 'カテゴリ別の質問数', type: 'BAR', subtitle: '件数の多い順 / 詳しい割合は下の表へ' },
+    { count: model.daily.length, column: 3, title: '日別の質問数', type: 'LINE', subtitle: '質問が記録された日の推移' },
   ]
-  charts.forEach(([count, column, title, type], index) => {
+  charts.forEach(({ count, column, title, type, subtitle }, index) => {
     if (!count) { return }
     const position = ChatPresentation.layout.charts[index]
-    const chart = sheet.newChart().setChartType(type).addRange(data.getRange(3, column, count + 1, 2)).setNumHeaders(1).setHiddenDimensionStrategy(Charts.ChartHiddenDimensionStrategy.SHOW_BOTH).setOption('title', title).setOption('width', position.width).setOption('height', position.height).setOption('colors', [ChatPresentation.colors.teal]).setOption('legend', { position: 'none' }).setOption('backgroundColor', '#ffffff').setOption('fontName', 'Arial').setPosition(position.row, position.column, 0, 0).build()
-    sheet.insertChart(chart)
+    const source = offset => ({ sourceRange: { sources: [{ sheetId: data.getSheetId(), startRowIndex: 2, endRowIndex: count + 3, startColumnIndex: column + offset, endColumnIndex: column + offset + 1 }] } })
+    const series = {
+      series: source(1),
+      targetAxis: type === 'BAR' ? 'BOTTOM_AXIS' : 'LEFT_AXIS',
+      colorStyle: color(type === 'BAR' ? 'teal' : 'navy'),
+      dataLabel: { type: 'DATA', textFormat: text(12, true), placement: type === 'BAR' ? 'OUTSIDE_END' : 'ABOVE' },
+    }
+    if (type === 'LINE') {
+      series.lineStyle = { width: 3, type: 'SOLID' }
+      series.pointStyle = { size: 7, shape: 'CIRCLE' }
+    }
+    else {
+      series.styleOverrides = model.categories.flatMap((item, itemIndex) => item.category === 'その他' ? [{ index: itemIndex, colorStyle: color('amber') }] : [])
+    }
+    requests.push({ addChart: { chart: {
+      spec: {
+        title,
+        subtitle,
+        titleTextFormat: text(16, true),
+        subtitleTextFormat: { ...text(11), foregroundColorStyle: color('muted') },
+        titleTextPosition: { horizontalAlignment: 'LEFT' },
+        subtitleTextPosition: { horizontalAlignment: 'LEFT' },
+        fontName: 'Arial',
+        backgroundColorStyle: color('white'),
+        hiddenDimensionStrategy: 'SHOW_ALL',
+        basicChart: {
+          chartType: type,
+          legendPosition: 'NO_LEGEND',
+          headerCount: 1,
+          axis: [{ position: type === 'BAR' ? 'BOTTOM_AXIS' : 'LEFT_AXIS', title: '質問数（件）', format: text(11), viewWindowOptions: { viewWindowMin: 0, viewWindowMode: 'EXPLICIT' } }],
+          domains: [{ domain: source(0), ...(type === 'BAR' ? { reversed: true } : {}) }],
+          series: [series],
+          ...(type === 'LINE' ? { lineSmoothing: false } : {}),
+        },
+      },
+      border: { colorStyle: color('white') },
+      position: { overlayPosition: { anchorCell: { sheetId: sheet.getSheetId(), rowIndex: position.row - 1, columnIndex: position.column - 1 }, offsetXPixels: 0, offsetYPixels: 0, widthPixels: position.width, heightPixels: position.height } },
+    } } })
   })
+  // Replace charts together so an invalid chart request leaves the existing charts intact.
+  if (requests.length) { Sheets.Spreadsheets.batchUpdate({ requests }, spreadsheet.getId()) }
 }
 
 function analysisList(spreadsheet, sheet, items, raw, period) {
@@ -191,12 +232,18 @@ function refreshChatAnalysis() {
       Sheets.Spreadsheets.batchUpdate({ requests: [analysisUpdate(data, 0, 0, [['会話分析 v1', analysisDataName]])] }, spreadsheet.getId())
     }
     analysisWrite(spreadsheet, data, 2, analysisChartData(result, model), 12)
+    // Keep real dates (including the year) while using compact, readable chart labels.
+    if (model.daily.length) { Sheets.Spreadsheets.batchUpdate({ requests: [{ repeatCell: {
+      range: { sheetId: data.getSheetId(), startRowIndex: 3, endRowIndex: model.daily.length + 3, startColumnIndex: 3, endColumnIndex: 4 },
+      cell: { userEnteredFormat: { numberFormat: { type: 'DATE', pattern: new Set(model.daily.map(item => item.date.slice(0, 4))).size > 1 ? 'yy/M/d' : 'M/d' } } },
+      fields: 'userEnteredFormat.numberFormat',
+    } }] }, spreadsheet.getId()) }
     const dashboard = reports[0]
     const end = Math.max(dashboard.getLastRow(), ChatPresentation.layout.lastRow)
     Sheets.Spreadsheets.batchUpdate({ requests: [...analysisCapacity(dashboard, end, 12), analysisUnmerge(dashboard, 1, end, 12)] }, spreadsheet.getId())
     analysisWrite(spreadsheet, dashboard, 4, ChatPresentation.dashboardValues(model).slice(4), 12)
     Sheets.Spreadsheets.batchUpdate({ requests: [
-      analysisUpdate(dashboard, 1, 0, [['集計開始日'], ['集計終了日']]),
+      analysisUpdate(dashboard, 1, 0, [['開始日'], ['終了日']]),
       analysisUpdate(dashboard, 1, 3, [['日付を入力して「会話ログ → 集計を更新」'], ['空欄なら全期間（日本時間）']], 3, 9),
       ...ChatPresentation.dashboardRequests(dashboard.getSheetId()),
     ] }, spreadsheet.getId())
@@ -204,7 +251,7 @@ function refreshChatAnalysis() {
     analysisList(spreadsheet, reports[1], result.other, raw, caption)
     analysisList(spreadsheet, reports[2], result.needsReview, raw, caption)
     SpreadsheetApp.flush()
-    analysisCharts(dashboard, data, model)
+    analysisCharts(spreadsheet, dashboard, data, model)
     data.hideSheet()
     return result.questionCount
   })

@@ -30,6 +30,7 @@ test('KPIは実集計と一致し、上位件数表示と残りのまとめで�
   assert.ok(!summary.categories.some(item => item.category === model.categories.at(-1).category))
   assert.equal(model.frequency.length, 10)
   assert.equal(model.frequency.at(-1).rank, 10)
+  assert.equal(model.frequency[0].share, '6.3%', 'top ten shares use all 16 questions as denominator')
   assert.deepEqual(model.statuses, summary.statuses)
   assert.deepEqual(model.daily, summary.daily)
   assert.ok(model.subtitle.includes('2026-10-01 〜 2026-10-02'))
@@ -75,7 +76,7 @@ test('書式変更は集計の管理範囲に限定し、期間入力・値・va
     if (request.repeatCell) {
       const { range, fields, cell } = request.repeatCell
       assert.equal(range.sheetId, 7)
-      assert.ok(range.endColumnIndex <= 12 && range.endRowIndex <= 44)
+      assert.ok(range.endColumnIndex <= 12 && range.endRowIndex <= 62)
       assert.ok(!fields.includes('userEnteredValue') && !fields.includes('dataValidation'))
       assert.deepEqual(Object.keys(cell), ['userEnteredFormat'])
     }
@@ -86,20 +87,20 @@ test('書式変更は集計の管理範囲に限定し、期間入力・値・va
         assert.equal(range.endRowIndex, range.startRowIndex + 1, 'Keep separate date controls')
         assert.ok(range.startColumnIndex === 1 || range.startColumnIndex === 3, 'Retain the B2/B3 date anchors')
       }
-      assert.ok(range.endColumnIndex <= 12 && range.endRowIndex <= 44)
-      assert.ok(range.endRowIndex <= 13 || range.startRowIndex >= 29, 'Reserve chart region')
+      assert.ok(range.endColumnIndex <= 12 && range.endRowIndex <= 62)
+      assert.ok(range.endRowIndex <= 13 || range.startRowIndex >= 26, 'Reserve chart region')
     }
   }
   for (const chart of Presentation.layout.charts) {
     assert.ok((chart.column - 1) * Presentation.layout.columnWidth + chart.width <= Presentation.layout.columns * Presentation.layout.columnWidth)
-    assert.ok(chart.row + chart.height / 22 < 30)
+    assert.ok(chart.row + chart.height / 26 < 27)
   }
 })
 
 test('一覧書式は表示6列と原文行番号の非表示列に収まり、固定行高で巨大セルを防ぐ', () => {
   const requests = Presentation.listRequests(11, 6)
   assert.ok(requests.some(request => request.updateDimensionProperties?.properties.hiddenByUser === true))
-  assert.ok(requests.some(request => request.updateDimensionProperties?.range.dimension === 'ROWS' && request.updateDimensionProperties.properties.pixelSize === 64))
+  assert.ok(requests.some(request => request.updateDimensionProperties?.range.dimension === 'ROWS' && request.updateDimensionProperties.properties.pixelSize === 80))
   for (const request of requests) {
     if (request.repeatCell) {
       assert.ok(request.repeatCell.range.endRowIndex <= 6)
@@ -111,20 +112,67 @@ test('一覧書式は表示6列と原文行番号の非表示列に収まり、�
   assert.throws(() => Presentation.listRequests(11, 0))
 })
 
-test('セル値は44行12列の固定配置で、期間入力とグラフ予約領域に書き込まない', () => {
+test('セル値は62行12列の固定配置で、期間入力とグラフ予約領域に書き込まない', () => {
   const model = Presentation.dashboardModel(Analysis.aggregate([log(0)]))
   const rows = Presentation.dashboardValues(model)
-  assert.equal(rows.length, 44)
+  assert.equal(rows.length, 62)
   assert.ok(rows.every(row => row.length === 12))
   assert.ok(rows.slice(0, 4).every(row => row.every(value => value === '')))
-  assert.ok(rows.slice(13, 28).every(row => row.every(value => value === '')))
+  assert.ok(rows.slice(13, 25).every(row => row.every(value => value === '')))
   assert.equal(rows[4][0], model.title)
   assert.equal(rows[8][0], '1')
-  assert.equal(rows[33][1], model.frequency[0].question)
-  assert.equal(rows[33][7], 1)
-  assert.match(rows[29][0], /選択行の詳細/)
+  assert.equal(rows[42][1], model.frequency[0].question)
+  assert.equal(rows[42][10], 1)
+  assert.equal(rows[42][11], '100.0%')
+  assert.match(rows[61][0], /割合は期間内の全質問が分母/)
   const empty = Presentation.dashboardModel(Analysis.aggregate([]))
-  assert.equal(Presentation.dashboardValues(empty)[29][0], empty.emptyText)
+  assert.equal(Presentation.dashboardValues(empty)[26][0], empty.emptyText)
+})
+
+test('要確認の理由は重複を保持し質問数と混同せず、例は新しい順の5件に絞る', () => {
+  const logs = Array.from({ length: 7 }, (_, index) => log(index, { 0: `2026-10-0${index + 1} 12:00:00`, 6: index === 0 ? 'エラー' : '完了', 7: index % 2 === 0 ? '要改善' : '判断不可' }))
+  logs.push(log(8, { 7: '問題なし' }))
+  const summary = Analysis.aggregate(logs)
+  const original = structuredClone(summary)
+  const model = Presentation.dashboardModel(summary)
+  assert.equal(model.tiles[2].value, '7')
+  assert.deepEqual(model.reviewBreakdown.map(item => item.count), [1, 4, 3])
+  assert.equal(model.reviewExamples.length, 5)
+  assert.deepEqual(model.reviewExamples.map(item => item.question), ['質問 6', '質問 5', '質問 4', '質問 3', '質問 2'])
+  assert.match(model.insight, /生成異常・完了未確認 1 件/)
+  assert.equal(model.categoryBreakdown[0].share, '100.0%')
+  assert.equal(model.frequency[0].share, '12.5%', 'frequency denominator is all questions, not top ten')
+  assert.match(Presentation.dashboardValues(model)[34][6], /重複あり/)
+  assert.deepEqual(summary, original)
+})
+
+test('同日の要確認例は行順で新しいものを優先し、理由と空状態を区別する', () => {
+  const summary = Analysis.aggregate([log(0, { 6: 'エラー', 7: '要改善' }), log(1, { 7: '判断不可' })])
+  const model = Presentation.dashboardModel(summary)
+  assert.deepEqual(model.reviewExamples.map(item => item.question), ['質問 1', '質問 0'])
+  assert.equal(model.reviewExamples[1].reason, 'エラー / 要改善')
+  const completed = Presentation.dashboardValues(Presentation.dashboardModel(Analysis.aggregate([log(0)])))
+  const empty = Presentation.dashboardValues(Presentation.dashboardModel(Analysis.aggregate([])))
+  assert.equal(completed[55][4], 'この期間に要確認の質問はありません')
+  assert.equal(empty[55][4], 'この期間のデータはありません')
+})
+
+test('拡張表の結合は重ならず各値を結合の先頭セルへ配置する', () => {
+  const summary = Analysis.aggregate(Array.from({ length: 12 }, (_, index) => log(index, { 3: `分類${index}`, 6: 'エラー' })))
+  const rows = Presentation.dashboardValues(Presentation.dashboardModel(summary))
+  const merged = new Map()
+  for (const request of Presentation.dashboardRequests(7)) {
+    if (!request.mergeCells) { continue }
+    const range = request.mergeCells.range
+    for (let row = range.startRowIndex; row < range.endRowIndex; row++) {
+      for (let column = range.startColumnIndex; column < range.endColumnIndex; column++) {
+        const key = `${row}:${column}`
+        assert.ok(!merged.has(key), `merge overlap at ${key}`)
+        merged.set(key, true)
+        if (row !== range.startRowIndex || column !== range.startColumnIndex) { assert.equal(rows[row][column], '', `value hidden by merge at ${key}`) }
+      }
+    }
+  }
 })
 
 test('一覧はマーカーを隠しタイトルと説明を確保してヘッダ5行目まで固定する', () => {

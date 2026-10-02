@@ -3,18 +3,22 @@ const ChatPresentation = (() => {
   const colors = { navy: '#14263d', teal: '#087f8c', amber: '#b56a10', lightTeal: '#eaf6f5', background: '#f5f7fb', muted: '#63758a', white: '#ffffff', line: '#dce4ee' }
   const layout = {
     columns: 12,
-    columnWidth: 80,
-    lastRow: 44,
+    columnWidth: 90,
+    lastRow: 62,
     titleRow: 5,
     subtitleRow: 6,
     tileLabelRow: 8,
     tileValueRow: 9,
     tileContextRow: 11,
-    charts: [{ row: 14, column: 1, width: 470, height: 280 }, { row: 14, column: 7, width: 470, height: 280 }],
-    frequencyRow: 32,
-    statusRow: 32,
-    tableHeaderRow: 33,
-    tableDataRow: 34,
+    charts: [{ row: 14, column: 1, width: 530, height: 300 }, { row: 14, column: 7, width: 530, height: 300 }],
+    insightRow: 27,
+    categoryRow: 29,
+    frequencyRow: 41,
+    statusRow: 29,
+    tableHeaderRow: 42,
+    tableDataRow: 43,
+    reviewRow: 54,
+    reviewDataRow: 56,
     listHeaderRow: 5,
     listDataRow: 6,
   }
@@ -33,6 +37,23 @@ const ChatPresentation = (() => {
       while (summary.categories.some(item => item.category === category)) { category += ' ※' }
       categories.push({ category, count: summary.categories.slice(8).reduce((sum, item) => sum + item.count, 0) })
     }
+    const share = value => count ? `${(value / count * 100).toFixed(1)}%` : '—'
+    const generationIssues = summary.statuses.filter(item => item.status !== '完了').reduce((sum, item) => sum + item.count, 0)
+    const reviewBreakdown = [
+      { reason: '生成異常・完了未確認', count: generationIssues },
+      { reason: '担当者評価：要改善', count: summary.needsReview.filter(item => item.review === '要改善').length },
+      { reason: '担当者評価：判断不可', count: summary.needsReview.filter(item => item.review === '判断不可').length },
+    ]
+    const reviewExamples = [...summary.needsReview].sort((a, b) => b.date.localeCompare(a.date) || b.index - a.index).slice(0, 5).map(item => ({
+      date: item.date,
+      category: item.category,
+      question: compactExcerpt(item.query, 70),
+      reason: [item.status !== '完了' ? item.status : '', ['要改善', '判断不可'].includes(item.review) ? item.review : ''].filter(Boolean).join(' / '),
+    }))
+    const topCategory = summary.categories[0]
+    const insight = count && topCategory
+      ? `最多カテゴリ：${compactExcerpt(topCategory.category, 22)} ${topCategory.count} 件（全質問の${share(topCategory.count)}） / 生成異常・完了未確認 ${generationIssues} 件`
+      : 'この期間の会話はまだありません。期間を変更するか、ログの記録後に集計を更新してください。'
     return {
       title: '会話ダッシュボード',
       subtitle: `対象期間：${start || '記録開始'} 〜 ${end || '最新'}${updatedAt ? ` | 更新：${updatedAt}` : ''}`,
@@ -40,11 +61,15 @@ const ChatPresentation = (() => {
         { label: '質問数', value: String(count), context: '期間内の質問・回答の件数', tone: 'navy' },
         { label: '会話数', value: String(summary.conversationCount), context: summary.missingConversationCount ? `会話IDなし ${summary.missingConversationCount} 件を除く` : '会話IDごとの件数', tone: 'teal' },
         { label: '要確認', value: String(summary.needsReview.length), context: '生成異常・要改善・判断不可', tone: 'amber' },
-        { label: 'その他の割合', value: count ? `${(otherCount / count * 100).toFixed(1)}%` : '—', context: `分類ルール見直しの候補 ${otherCount} 件`, tone: 'teal' },
+        { label: 'その他の割合', value: share(otherCount), context: `カテゴリ「その他」 ${otherCount} 件`, tone: 'teal' },
       ],
       categories,
+      categoryBreakdown: categories.map(item => ({ ...item, share: share(item.count) })),
+      reviewBreakdown,
+      reviewExamples,
+      insight,
       daily: summary.daily.map(item => ({ ...item })),
-      frequency: summary.questions.slice(0, 10).map((item, index) => ({ rank: index + 1, question: compactExcerpt(item.example, 80), count: item.count })),
+      frequency: summary.questions.slice(0, 10).map((item, index) => ({ rank: index + 1, question: compactExcerpt(item.example, 100), count: item.count, share: share(item.count) })),
       statuses: summary.statuses.map(item => ({ ...item })),
       emptyText: count ? '' : 'この期間の会話はまだありません。期間を変更するか、ログの記録後に集計を更新してください。',
     }
@@ -71,28 +96,60 @@ const ChatPresentation = (() => {
       rows[8][index * 3] = tile.value
       rows[10][index * 3] = tile.context
     })
-    rows[29][0] = model.emptyText || '質問・回答の全文は一覧で行を選び、メニューの「選択行の詳細を開く」で確認できます。'
-    rows[31][0] = 'よくある質問 / TOP 10'
-    rows[31][8] = '生成状態'
-    rows[32][0] = '順位'
-    rows[32][1] = '質問'
-    rows[32][7] = '件数'
-    rows[32][8] = '状態'
-    rows[32][11] = '件数'
-    model.frequency.slice(0, 10).forEach((item, index) => {
-      rows[index + 33][0] = item.rank
-      rows[index + 33][1] = item.question
-      rows[index + 33][7] = item.count
+    rows[26][0] = model.insight
+    rows[28][0] = 'カテゴリ内訳'
+    rows[28][6] = '生成状態・要確認の内訳'
+    rows[29][0] = 'カテゴリ'
+    rows[29][4] = '件数'
+    rows[29][5] = '全質問比'
+    rows[29][6] = '生成状態'
+    rows[29][11] = '件数'
+    model.categoryBreakdown.forEach((item, index) => {
+      rows[index + 30][0] = item.category
+      rows[index + 30][4] = item.count
+      rows[index + 30][5] = item.share
     })
-    const statuses = model.statuses.slice(0, 6)
-    if (model.statuses.length > 6) {
-      statuses[5] = { status: 'その他の生成状態', count: model.statuses.slice(5).reduce((sum, item) => sum + item.count, 0) }
+    if (!model.categoryBreakdown.length) { rows[30][0] = 'この期間のデータはありません' }
+    rows[40][0] = 'よくある質問 / TOP 10'
+    rows[41][0] = '順位'
+    rows[41][1] = '質問'
+    rows[41][10] = '件数'
+    rows[41][11] = '全質問比'
+    model.frequency.slice(0, 10).forEach((item, index) => {
+      rows[index + 42][0] = item.rank
+      rows[index + 42][1] = item.question
+      rows[index + 42][10] = item.count
+      rows[index + 42][11] = item.share
+    })
+    if (!model.frequency.length) { rows[42][1] = 'この期間のデータはありません' }
+    const statuses = model.statuses.slice(0, 4)
+    if (model.statuses.length > 4) {
+      statuses[3] = { status: 'その他の生成状態', count: model.statuses.slice(3).reduce((sum, item) => sum + item.count, 0) }
     }
     statuses.forEach((item, index) => {
-      rows[index + 33][8] = item.status
-      rows[index + 33][11] = item.count
+      rows[index + 30][6] = item.status
+      rows[index + 30][11] = item.count
     })
-    rows[43][0] = '頻出質問は上位10件を表示。全件は非表示の「集計データ」シートで確認できます。'
+    if (!statuses.length) { rows[30][6] = 'この期間のデータはありません' }
+    rows[34][6] = '要確認の理由（重複あり）'
+    model.reviewBreakdown.forEach((item, index) => {
+      rows[index + 35][6] = item.reason
+      rows[index + 35][11] = item.count
+    })
+    rows[38][6] = '理由は重複します。生成完了 ≠ 回答の正しさ。'
+    rows[53][0] = '要確認の質問例 / 新しい順に5件'
+    rows[54][0] = '日時'
+    rows[54][2] = 'カテゴリ'
+    rows[54][4] = '質問'
+    rows[54][9] = '確認が必要な理由'
+    model.reviewExamples.forEach((item, index) => {
+      rows[index + 55][0] = item.date
+      rows[index + 55][2] = item.category
+      rows[index + 55][4] = item.question
+      rows[index + 55][9] = item.reason
+    })
+    if (!model.reviewExamples.length) { rows[55][4] = model.emptyText ? 'この期間のデータはありません' : 'この期間に要確認の質問はありません' }
+    rows[61][0] = '割合は期間内の全質問が分母。全文は一覧の詳細メニュー、頻出質問の全件は非表示の「集計データ」へ。'
     return rows
   }
   const rgb = hex => ({ red: Number.parseInt(hex.slice(1, 3), 16) / 255, green: Number.parseInt(hex.slice(3, 5), 16) / 255, blue: Number.parseInt(hex.slice(5, 7), 16) / 255 })
@@ -108,25 +165,26 @@ const ChatPresentation = (() => {
   function dashboardRequests(sheetId) {
     const requests = [
       sheetStyle(sheetId, 0, colors.teal),
-      dimension(sheetId, 'COLUMNS', 0, 12, { pixelSize: 80 }),
-      dimension(sheetId, 'ROWS', 0, 44, { pixelSize: 22 }),
+      dimension(sheetId, 'COLUMNS', 0, 12, { pixelSize: layout.columnWidth }),
+      dimension(sheetId, 'ROWS', 0, layout.lastRow, { pixelSize: 26 }),
       dimension(sheetId, 'ROWS', 0, 1, { hiddenByUser: true }),
-      format(grid(sheetId, 1, 44), { backgroundColor: rgb(colors.background), textFormat: { fontFamily: 'Arial', fontSize: 10, foregroundColor: rgb(colors.navy) }, verticalAlignment: 'MIDDLE', wrapStrategy: 'CLIP' }),
+      format(grid(sheetId, 1, layout.lastRow), { backgroundColor: rgb(colors.background), textFormat: { fontFamily: 'Arial', fontSize: 12, foregroundColor: rgb(colors.navy) }, verticalAlignment: 'MIDDLE', wrapStrategy: 'CLIP', horizontalAlignment: 'LEFT' }),
       // B2/B3 remain date anchors; the adapter preserves their values and validation.
       merge(grid(sheetId, 1, 2, 1, 3)),
       merge(grid(sheetId, 2, 3, 1, 3)),
       merge(grid(sheetId, 1, 2, 3, 12)),
       merge(grid(sheetId, 2, 3, 3, 12)),
-      format(grid(sheetId, 1, 3, 1, 3), { backgroundColor: rgb(colors.white), numberFormat: { type: 'DATE', pattern: 'yyyy-mm-dd' }, textFormat: { foregroundColor: rgb(colors.teal), bold: true, fontSize: 11 } }),
-      dimension(sheetId, 'ROWS', 1, 3, { pixelSize: 28 }),
+      format(grid(sheetId, 1, 3, 1, 3), { backgroundColor: rgb(colors.white), numberFormat: { type: 'DATE', pattern: 'yyyy-mm-dd' }, textFormat: { foregroundColor: rgb(colors.teal), bold: true, fontSize: 12 } }),
+      dimension(sheetId, 'ROWS', 1, 3, { pixelSize: 34 }),
       merge(grid(sheetId, 4, 5)),
       merge(grid(sheetId, 5, 6)),
-      dimension(sheetId, 'ROWS', 4, 5, { pixelSize: 44 }),
-      format(grid(sheetId, 4, 5), { backgroundColor: rgb(colors.navy), textFormat: { bold: true, fontSize: 23, foregroundColor: rgb(colors.white) } }),
-      format(grid(sheetId, 5, 6), { textFormat: { fontSize: 10, foregroundColor: rgb(colors.muted) } }),
-      dimension(sheetId, 'ROWS', 7, 8, { pixelSize: 30 }),
-      dimension(sheetId, 'ROWS', 8, 10, { pixelSize: 28 }),
-      dimension(sheetId, 'ROWS', 10, 11, { pixelSize: 30 }),
+      dimension(sheetId, 'ROWS', 4, 5, { pixelSize: 54 }),
+      dimension(sheetId, 'ROWS', 5, 6, { pixelSize: 32 }),
+      format(grid(sheetId, 4, 5), { backgroundColor: rgb(colors.navy), textFormat: { bold: true, fontSize: 28, foregroundColor: rgb(colors.white) } }),
+      format(grid(sheetId, 5, 6), { textFormat: { fontSize: 11, foregroundColor: rgb(colors.muted) } }),
+      dimension(sheetId, 'ROWS', 7, 8, { pixelSize: 36 }),
+      dimension(sheetId, 'ROWS', 8, 10, { pixelSize: 32 }),
+      dimension(sheetId, 'ROWS', 10, 11, { pixelSize: 38 }),
     ]
     ;['navy', 'teal', 'amber', 'teal'].forEach((tone, index) => {
       const column = index * 3
@@ -135,30 +193,50 @@ const ChatPresentation = (() => {
         merge(grid(sheetId, 7, 8, column, column + 3)),
         merge(grid(sheetId, 8, 10, column, column + 3)),
         merge(grid(sheetId, 10, 11, column, column + 3)),
-        format(grid(sheetId, 7, 8, column, column + 3), { textFormat: { fontSize: 11, bold: true, foregroundColor: rgb(colors[tone]) } }),
-        format(grid(sheetId, 8, 10, column, column + 3), { textFormat: { fontSize: 30, bold: true, foregroundColor: rgb(colors[tone]) } }),
-        format(grid(sheetId, 10, 11, column, column + 3), { textFormat: { fontSize: 9, foregroundColor: rgb(colors.muted) } }),
+        format(grid(sheetId, 7, 8, column, column + 3), { textFormat: { fontSize: 13, bold: true, foregroundColor: rgb(colors[tone]) } }),
+        format(grid(sheetId, 8, 10, column, column + 3), { textFormat: { fontSize: 34, bold: true, foregroundColor: rgb(colors[tone]) } }),
+        format(grid(sheetId, 10, 11, column, column + 3), { textFormat: { fontSize: 11, foregroundColor: rgb(colors.muted) }, wrapStrategy: 'WRAP' }),
       )
     })
     requests.push(
-      merge(grid(sheetId, 29, 30)),
-      format(grid(sheetId, 29, 30), { textFormat: { fontSize: 10, foregroundColor: rgb(colors.muted) } }),
-      merge(grid(sheetId, 31, 32, 0, 8)),
-      merge(grid(sheetId, 31, 32, 8, 12)),
-      dimension(sheetId, 'ROWS', 31, 33, { pixelSize: 30 }),
-      format(grid(sheetId, 31, 32), { backgroundColor: rgb(colors.navy), textFormat: { fontSize: 12, bold: true, foregroundColor: rgb(colors.white) } }),
-      format(grid(sheetId, 32, 33), { backgroundColor: rgb(colors.lightTeal), textFormat: { bold: true, foregroundColor: rgb(colors.teal) } }),
-      dimension(sheetId, 'ROWS', 33, 43, { pixelSize: 40 }),
-      merge(grid(sheetId, 32, 33, 1, 7)),
-      merge(grid(sheetId, 32, 33, 8, 11)),
-      format(grid(sheetId, 33, 43, 0, 8), { wrapStrategy: 'WRAP' }),
-      merge(grid(sheetId, 43, 44)),
-      format(grid(sheetId, 43, 44), { textFormat: { fontSize: 9, foregroundColor: rgb(colors.muted) } }),
+      merge(grid(sheetId, 26, 27)),
+      dimension(sheetId, 'ROWS', 26, 27, { pixelSize: 44 }),
+      format(grid(sheetId, 26, 27), { backgroundColor: rgb(colors.lightTeal), textFormat: { fontSize: 12, bold: true, foregroundColor: rgb(colors.teal) }, wrapStrategy: 'WRAP' }),
+      merge(grid(sheetId, 28, 29, 0, 6)),
+      merge(grid(sheetId, 28, 29, 6, 12)),
+      merge(grid(sheetId, 40, 41)),
+      merge(grid(sheetId, 53, 54)),
+      merge(grid(sheetId, 34, 35, 6, 12)),
+      merge(grid(sheetId, 38, 39, 6, 12)),
+      format(grid(sheetId, 34, 35, 6, 12), { backgroundColor: rgb(colors.lightTeal), textFormat: { fontSize: 12, bold: true, foregroundColor: rgb(colors.teal) } }),
+      format(grid(sheetId, 38, 39, 6, 12), { textFormat: { fontSize: 11, foregroundColor: rgb(colors.muted) }, wrapStrategy: 'WRAP' }),
+      merge(grid(sheetId, 61, 62)),
+      dimension(sheetId, 'ROWS', 61, 62, { pixelSize: 42 }),
+      format(grid(sheetId, 61, 62), { textFormat: { fontSize: 11, foregroundColor: rgb(colors.muted) }, wrapStrategy: 'WRAP' }),
     )
-    for (let row = 33; row < 43; row++) {
-      requests.push(merge(grid(sheetId, row, row + 1, 1, 7)))
-      if (row < 39) { requests.push(merge(grid(sheetId, row, row + 1, 8, 11))) }
-      if (row % 2 === 1) { requests.push(format(grid(sheetId, row, row + 1), { backgroundColor: rgb(colors.white) })) }
+    for (const row of [28, 40, 53]) {
+      requests.push(dimension(sheetId, 'ROWS', row, row + 1, { pixelSize: 40 }), format(grid(sheetId, row, row + 1), { backgroundColor: rgb(colors.navy), textFormat: { fontSize: 14, bold: true, foregroundColor: rgb(colors.white) } }))
+    }
+    for (const row of [29, 41, 54]) {
+      requests.push(dimension(sheetId, 'ROWS', row, row + 1, { pixelSize: 36 }), format(grid(sheetId, row, row + 1), { backgroundColor: rgb(colors.lightTeal), textFormat: { fontSize: 12, bold: true, foregroundColor: rgb(colors.teal) } }))
+    }
+    for (const [start, end, height] of [[30, 39, 42], [42, 52, 44], [55, 60, 44]]) {
+      requests.push(dimension(sheetId, 'ROWS', start, end, { pixelSize: height }), format(grid(sheetId, start, end), { wrapStrategy: 'WRAP' }))
+      for (let row = start; row < end; row++) {
+        if ((row - start) % 2 === 0) {
+          requests.push(format(grid(sheetId, row, row + 1, 0, start === 30 ? 6 : 12), { backgroundColor: rgb(colors.white) }))
+        }
+      }
+    }
+    for (let row = 29; row < 39; row++) {
+      requests.push(merge(grid(sheetId, row, row + 1, 0, 4)), format(grid(sheetId, row, row + 1, 4, 6), { horizontalAlignment: 'RIGHT' }))
+      if (row !== 34 && row !== 38) { requests.push(merge(grid(sheetId, row, row + 1, 6, 11)), format(grid(sheetId, row, row + 1, 11, 12), { horizontalAlignment: 'RIGHT' })) }
+    }
+    for (let row = 41; row < 52; row++) {
+      requests.push(merge(grid(sheetId, row, row + 1, 1, 10)), format(grid(sheetId, row, row + 1, 10, 12), { horizontalAlignment: 'RIGHT' }))
+    }
+    for (let row = 54; row < 60; row++) {
+      for (const [start, end] of [[0, 2], [2, 4], [4, 9], [9, 12]]) { requests.push(merge(grid(sheetId, row, row + 1, start, end))) }
     }
     return requests
   }
@@ -168,23 +246,23 @@ const ChatPresentation = (() => {
       sheetStyle(sheetId, 5, colors.amber),
       dimension(sheetId, 'COLUMNS', 6, 21, { hiddenByUser: true }),
       dimension(sheetId, 'ROWS', 0, 1, { hiddenByUser: true }),
-      format(grid(sheetId, 1, lastRow, 0, 6), { backgroundColor: rgb(colors.white), textFormat: { fontFamily: 'Arial', fontSize: 10, foregroundColor: rgb(colors.navy) }, verticalAlignment: 'MIDDLE', wrapStrategy: 'WRAP' }),
+      format(grid(sheetId, 1, lastRow, 0, 6), { backgroundColor: rgb(colors.white), textFormat: { fontFamily: 'Arial', fontSize: 12, foregroundColor: rgb(colors.navy) }, verticalAlignment: 'MIDDLE', wrapStrategy: 'WRAP' }),
       merge(grid(sheetId, 1, 2, 0, 6)),
       merge(grid(sheetId, 2, 3, 0, 6)),
-      dimension(sheetId, 'ROWS', 1, 2, { pixelSize: 44 }),
-      dimension(sheetId, 'ROWS', 2, 3, { pixelSize: 32 }),
+      dimension(sheetId, 'ROWS', 1, 2, { pixelSize: 54 }),
+      dimension(sheetId, 'ROWS', 2, 3, { pixelSize: 38 }),
       dimension(sheetId, 'ROWS', 3, 4, { pixelSize: 16 }),
-      dimension(sheetId, 'ROWS', 4, 5, { pixelSize: 36 }),
-      format(grid(sheetId, 1, 2, 0, 6), { backgroundColor: rgb(colors.navy), textFormat: { bold: true, fontSize: 22, foregroundColor: rgb(colors.white) } }),
-      format(grid(sheetId, 2, 3, 0, 6), { textFormat: { fontSize: 10, foregroundColor: rgb(colors.muted) } }),
-      format(grid(sheetId, 4, 5, 0, 6), { backgroundColor: rgb(colors.lightTeal), textFormat: { bold: true, foregroundColor: rgb(colors.teal) } }),
+      dimension(sheetId, 'ROWS', 4, 5, { pixelSize: 40 }),
+      format(grid(sheetId, 1, 2, 0, 6), { backgroundColor: rgb(colors.navy), textFormat: { bold: true, fontSize: 26, foregroundColor: rgb(colors.white) } }),
+      format(grid(sheetId, 2, 3, 0, 6), { textFormat: { fontSize: 11, foregroundColor: rgb(colors.muted) } }),
+      format(grid(sheetId, 4, 5, 0, 6), { backgroundColor: rgb(colors.lightTeal), textFormat: { fontSize: 12, bold: true, foregroundColor: rgb(colors.teal) } }),
     ]
-    ;[112, 112, 245, 325, 160, 64].forEach((width, column) => requests.push(dimension(sheetId, 'COLUMNS', column, column + 1, { pixelSize: width })))
+    ;[150, 140, 280, 400, 180, 72].forEach((width, column) => requests.push(dimension(sheetId, 'COLUMNS', column, column + 1, { pixelSize: width })))
     if (lastRow > 5) {
       requests.push(
-        dimension(sheetId, 'ROWS', 5, lastRow, { pixelSize: 64 }),
-        format(grid(sheetId, 5, lastRow, 4, 5), { backgroundColor: rgb('#fff4e5'), textFormat: { fontSize: 10, foregroundColor: rgb(colors.amber) } }),
-        format(grid(sheetId, 5, lastRow, 5, 6), { textFormat: { fontSize: 10, foregroundColor: rgb(colors.teal), underline: true }, horizontalAlignment: 'CENTER' }),
+        dimension(sheetId, 'ROWS', 5, lastRow, { pixelSize: 80 }),
+        format(grid(sheetId, 5, lastRow, 4, 5), { backgroundColor: rgb('#fff4e5'), textFormat: { fontSize: 12, foregroundColor: rgb(colors.amber) } }),
+        format(grid(sheetId, 5, lastRow, 5, 6), { textFormat: { fontSize: 12, foregroundColor: rgb(colors.teal), underline: true }, horizontalAlignment: 'CENTER' }),
       )
     }
     return requests
