@@ -1,9 +1,13 @@
 // Only launched by Playwright. No test routes are added to the application.
 import { createServer } from 'node:http'
+import ChatLog from '../../integrations/google-sheets/Core.js'
 
 const pending = new Map()
 let messages = []
 let conversations = []
+let chatLogs = []
+let logAttempts = 0
+let logMode = 'ok'
 const json = (response, body, status = 200) => {
   response.writeHead(status, { 'Content-Type': 'application/json' })
   response.end(JSON.stringify(body))
@@ -18,12 +22,34 @@ createServer(async (request, response) => {
     pending.clear()
     messages = []
     conversations = []
+    chatLogs = []
+    logAttempts = 0
+    logMode = 'ok'
     return json(response, { ok: true })
   }
   if (path === '/complete' && request.method === 'POST') {
     for (const finish of pending.values()) { finish() }
     pending.clear()
     return json(response, { ok: true })
+  }
+  if (path === '/chat-logs') { return json(response, { records: chatLogs, attempts: logAttempts }) }
+  if (path === '/fail-chat-logs' && request.method === 'POST') {
+    logMode = 'fail'
+    return json(response, { ok: true })
+  }
+  if (path === '/chat-log' && request.method === 'POST') {
+    let raw = ''
+    for await (const chunk of request) { raw += chunk }
+    logAttempts++
+    if (logMode === 'fail') { return json(response, { ok: false }, 503) }
+    const body = JSON.parse(raw)
+    if (body.secret !== 'local-chat-log-test-secret-12345678' || !ChatLog.validate(body.record) || body.record.environment !== 'test') {
+      return json(response, { ok: false, code: 'invalid_record' })
+    }
+    const key = ChatLog.key(body.record)
+    const duplicate = chatLogs.some(record => ChatLog.key(record) === key)
+    if (!duplicate) { chatLogs.push(body.record) }
+    return json(response, { ok: true, code: duplicate ? 'duplicate' : 'stored', key })
   }
   if (request.headers.authorization !== 'Bearer ci-test-key') {
     return json(response, { message: 'Unexpected test credentials' }, 401)
