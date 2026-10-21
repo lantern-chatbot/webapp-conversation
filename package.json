@@ -4,7 +4,7 @@
   "private": true,
   "packageManager": "pnpm@12.3.4",
   "engines": {
-    "node": "24.x"
+    "node": ">=24.22.1 <25"
   },
   "scripts": {
     "dev": "next dev",
@@ -41,11 +41,11 @@
     "i18next-resources-to-backend": "^1.2.3",
     "immer": "^9.0.19",
     "js-cookie": "^3.0.8",
-    "katex": "^0.18.7",
+    "katex": "0.18.7",
     "lodash-es": "^4.18.1",
     "mime": "^4.1.0",
     "negotiator": "^1.1.0",
-    "next": "^16.3.8",
+    "next": "~16.4.2",
     "rc-textarea": "^1.5.3",
     "react": "~19.3.0",
     "react-dom": "~19.3.0",
@@ -56,17 +56,17 @@
     "sass": "^1.105.0",
     "scheduler": "^0.28.0",
     "server-only": "^0.0.1",
-    "streamdown": "^1.2.0",
+    "streamdown": "1.2.0",
     "swr": "^2.5.1",
     "tailwind-merge": "^3.7.0",
     "use-context-selector": "^2.0.0",
-    "uuid": "^10.0.0",
+    "uuid": "^11.1.1",
     "zustand": "^4.5.2"
   },
   "devDependencies": {
     "@antfu/eslint-config": "~5.2.2",
     "@eslint-react/eslint-plugin": "^1.53.0",
-    "@faker-js/faker": "^9.0.3",
+    "@faker-js/faker": "^10.6.0",
     "@playwright/test": "1.63.0",
     "@tailwindcss/typography": "^0.5.20",
     "@testing-library/dom": "10.4.2",
@@ -90,7 +90,7 @@
     "postcss": "^8.5.28",
     "tailwindcss": "^3.4.14",
     "typescript": "5.9.2",
-    "vitest": "5.0.1"
+    "vitest": "5.0.5"
   },
   "lint-staged": {
     "**/*.js?(x)": [

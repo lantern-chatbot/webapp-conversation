@@ -1,0 +1,35 @@
+# Docker のビルドに送らないもの。
+# 秘密情報（.env*）をイメージのレイヤーに入れないことが最優先。
+# NEXT_PUBLIC_* はビルド引数、DIFY_API_KEY は起動時の環境変数で渡す（Dockerfile を参照）。
+
+# 秘密情報
+.env*
+**/.env*
+*.pem
+**/*.pem
+.vercel
+
+# バージョン管理と CI
+.git
+.github
+
+# 依存とビルドの生成物（イメージの中で作り直す）
+node_modules
+**/node_modules
+.next
+out
+build
+dist
+*.tsbuildinfo
+
+# テストの生成物
+coverage
+test-results
+playwright-report
+blob-report
+
+# ログ・エディタ
+*.log
+.DS_Store
+.vscode
+.serena

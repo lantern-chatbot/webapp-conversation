@@ -64,10 +64,10 @@ Difyの回答に次の制御トークンが含まれると、フロントエン�
 
 質問・回答をGoogleスプレッドシートへ保存する任意機能は、[会話ログの設定手順](integrations/google-sheets/README.md)を参照してください。初期状態では無効です。
 
-Node.js 24.x / pnpm 12.3.4を使用します。pnpmのバージョンは`package.json`の`packageManager`で固定しています。
+Node.js 24.22.1以上（24系） / pnpm 12.3.4を使用します。pnpmのバージョンは`package.json`の`packageManager`で固定しています。
 
 ```bash
-pnpm install
+pnpm install --frozen-lockfile
 pnpm dev
 ```
 

@@ -2,3 +2,9 @@ allowBuilds:
   '@parcel/watcher': true
   sharp: true
   unrs-resolver: true
+
+# セキュリティ修正版を上流の固定・旧範囲にも適用。削除時は全依存のauditを再確認する。
+overrides:
+  'katex@<0.18.2': '0.18.7'
+  'postcss-selector-parser@<7.1.6': '^7.1.6'
+  'tinypool@>=2.0.0 <2.1.2': '^2.1.2'

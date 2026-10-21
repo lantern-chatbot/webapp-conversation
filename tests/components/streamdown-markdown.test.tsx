@@ -5,6 +5,15 @@ import StreamdownMarkdown from '@/app/components/base/streamdown-markdown'
 
 const imageSources = (container: HTMLElement) => [...container.querySelectorAll('img')].map(img => img.getAttribute('src'))
 
+describe('回答の数式', () => {
+  it('Streamdown と更新後の KaTeX で数式を表示できる', () => {
+    const { container } = render(<StreamdownMarkdown content={'$$\nE = mc^2\n$$'} />)
+    expect(container.querySelector('math')).not.toBeNull()
+    expect(container.querySelector('annotation[encoding="application/x-tex"]')?.textContent).toBe('E = mc^2')
+    expect(container.querySelector('.katex-error')).toBeNull()
+  })
+})
+
 describe('images in model output', () => {
   it('does not load images from other origins', () => {
     const { container } = render(<StreamdownMarkdown content={[
