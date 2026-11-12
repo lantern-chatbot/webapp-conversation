@@ -55,8 +55,8 @@ describe('next.config.js response headers', () => {
     assert.equal(loadConfig().poweredByHeader, false)
   })
 
-  it('keeps standalone output outside Vercel only', () => {
-    assert.equal(loadConfig().output, 'standalone')
+  it('uses the default output on and off Vercel (no Docker standalone build)', () => {
+    assert.equal(loadConfig().output, undefined)
     assert.equal(loadConfig('1').output, undefined)
   })
 })

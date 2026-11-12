@@ -64,7 +64,7 @@ Difyの回答に次の制御トークンが含まれると、フロントエン�
 
 質問・回答をGoogleスプレッドシートへ保存する任意機能は、[会話ログの設定手順](integrations/google-sheets/README.md)を参照してください。初期状態では無効です。
 
-Node.js 24.22.1以上（24系） / pnpm 12.3.4を使用します。pnpmのバージョンは`package.json`の`packageManager`で固定しています。
+Node.js 24.22.3以上（24系） / pnpm 12.3.4を使用します。pnpmのバージョンは`package.json`の`packageManager`で固定しています。
 
 ```bash
 pnpm install --frozen-lockfile
@@ -94,7 +94,7 @@ pnpm exec playwright install chromium
 pnpm test:e2e
 ```
 
-ブラウザテストは`127.0.0.1:4318`にNext.js、`127.0.0.1:4319`に疑似Difyを起動し、終了時に停止します。両ポートを空けて実行してください。`pnpm test:e2e`自身がビルドも行うため、事前の`pnpm build`は不要です。Vercelと同じ出力設定でビルドし、Docker用のstandalone出力は生成しません。
+ブラウザテストは`127.0.0.1:4318`にNext.js、`127.0.0.1:4319`に疑似Difyを起動し、終了時に停止します。両ポートを空けて実行してください。`pnpm test:e2e`自身がビルドも行うため、事前の`pnpm build`は不要です。
 
 テスト用のAPP ID・API URL・APIキーはPlaywrightがローカルの値へ固定します。実際のDify APIキー、GitHub Secrets、LLM呼び出しは不要です。ブラウザから外部サイトへの通信も遮断します。
 

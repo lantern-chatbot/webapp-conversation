@@ -29,8 +29,6 @@ export default defineConfig({
       timeout: 240_000,
       reuseExistingServer: false,
       env: {
-        // Match Vercel's build output (no Docker standalone symlinks).
-        VERCEL: '1',
         VERCEL_ENV: '',
         CHAT_LOG_MODE: 'test',
         CHAT_LOG_URL: 'http://127.0.0.1:4319/chat-log',

@@ -22,8 +22,6 @@ const nextConfig = {
       },
     ]
   },
-  // Vercel provides its own output tracing. Keep standalone output for Docker only.
-  ...(process.env.VERCEL ? {} : { output: 'standalone' }),
 }
 
 module.exports = nextConfig
