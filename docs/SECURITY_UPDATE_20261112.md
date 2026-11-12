@@ -1,6 +1,8 @@
 # 2026-11-12 セキュリティ更新
 
-[Node.js 2026-11-11のセキュリティリリース](https://nodejs.org/en/blog/vulnerability/november-2026-security-releases)に対応し、Node.jsを24.22.1から24.22.3へ更新しています。`.node-version`、`package.json`の`engines.node`、Dockerfileの2つのベースイメージを同時に更新しました。CIは`.node-version`を参照するため変更していません。
+[Node.js 2026-11-11のセキュリティリリース](https://nodejs.org/en/blog/vulnerability/november-2026-security-releases)に対応し、Node.jsを24.22.1から24.22.3へ更新しています。`.node-version`と`package.json`の`engines.node`を同時に更新しました。CIは`.node-version`を参照するため変更していません。
+
+あわせて、上流由来で本番では使っていなかったDockerfile・`.dockerignore`と、`next.config.js`のDocker向け`output: 'standalone'`分岐を削除しました。本番はVercelのみで、CIにもDockerビルドはありません。Node.jsの更新箇所は`.node-version`と`engines.node`の2か所になります。
 
 ## Node.jsの公式情報との照合
 
@@ -23,8 +25,7 @@
 
 リポジトリの更新だけでは、デプロイ済み環境への適用は証明できません。
 
-1. Vercelのビルドログで`node --version`が24.22.3以上であることを確認します。Vercelのパッチ版はプラットフォーム側の管理で、`engines.node`の範囲はその下限を示すだけです。
-2. Dockerを使う場合は`docker build --pull`で`node:24.22.3-alpine`を取得し直し、検証後に新しいイメージをデプロイします。既存コンテナは自動で置き換わりません。
+Vercelのビルドログで`node --version`が24.22.3以上であることを確認します。Vercelのパッチ版はプラットフォーム側の管理で、`engines.node`の範囲はその下限を示すだけです。
 
 ## 検証
 
