@@ -3,7 +3,7 @@
 #   起動:   docker run -p 3000:3000 -e DIFY_API_KEY=<APIキー> chatbot
 # DIFY_API_KEY はイメージに焼き込まず、起動時の環境変数で渡す。
 
-FROM node:24.22.1-alpine AS base
+FROM node:24.22.3-alpine AS base
 ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
 RUN corepack enable
 WORKDIR /app
@@ -23,7 +23,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN pnpm build
 
-FROM node:24.22.1-alpine AS runner
+FROM node:24.22.3-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
